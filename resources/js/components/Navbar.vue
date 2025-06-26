@@ -13,7 +13,7 @@ const toggleNavDropdown = () => {
 
 const navLinks = [
     { name: 'Dashboard', route: 'dashboard', requiresAuth: true },
-    { name: 'My Words', route: 'words.index', requiresAuth: true },
+    // { name: 'My Words', route: 'words.index', requiresAuth: true },
     { name: 'Profile', route: 'Profile.edit', requiresAuth: true },
     { name: 'Log In', route: 'login', requiresAuth: false, isPrimary: true },
     { name: 'Register', route: 'register', requiresAuth: false, isBordered: true },

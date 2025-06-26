@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-// use Illuminate\Http\Request;
+use Illuminate\Http\Request;
 use App\Models\Word;
 use App\Http\Requests\StoreWordRequest;
 use Illuminate\Support\Facades\Auth;
@@ -17,11 +17,21 @@ class WordController extends Controller
         return inertia('Words/Index2', compact('words'));
     }
     
-    public function index()
+    public function index(Request $request)
     {
-        $words = Auth::user()->words()->latest()->get(); // Assuming a 'words' relationship on User model
+        $words = $request->user()->words()
+                         ->latest()
+                         ->paginate(10);
+
         return Inertia::render('Words/Index', [
-            'words' => $words,
+            'words' => $words->through(fn ($word) => [
+                'id' => $word->id,
+                'chinese_character' => $word->chinese_word,
+                'pinyin' => $word->pinyin,
+                'translation' => $word->translation,
+                'tags' => $word->tags,
+                'created_at' => $word->created_at->format('M d, Y'),
+            ]),
         ]);
     }
 
@@ -45,7 +55,7 @@ class WordController extends Controller
 
     public function create()
     {
-        return Inertia::render('Words/Create'); // Assuming you have a Vue page at resources/js/Pages/Words/Create.vue
+        return Inertia::render('Words/Create');
     }
 
     public function save(StoreWordRequest $request)

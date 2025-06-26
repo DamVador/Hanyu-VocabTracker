@@ -43,7 +43,8 @@ defineProps({
       <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm flex items-center justify-between">
           <div>
             <p class="text-sm sm:text-base font-medium text-gray-500">Quick Add</p>
-            <Link :href="route('words.create')" class="mt-2 inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition">
+            <Link :href="route('words.create')" 
+                class="mt-2 inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-md shadow-md hover:bg-blue-700 transition">
               Add New Word
             </Link>
           </div>
