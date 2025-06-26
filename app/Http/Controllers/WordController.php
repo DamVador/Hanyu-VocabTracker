@@ -25,6 +25,24 @@ class WordController extends Controller
         ]);
     }
 
+    public function dashboardHome()
+    {
+        $user = Auth::user();
+        $totalWords = $user->words()->count();
+        $recentWords = $user->words()->latest()->take(5)->get();
+
+        // Placeholder for words due for review
+        // TODO Review system
+        // $wordsDueForReview = $user->words()->where('next_review_date', '<=', now())->count();
+        $wordsDueForReview = 0; // Defaulting to 0 for now
+
+        return Inertia::render('Dashboard', [
+            'totalWords' => $totalWords,
+            'recentWords' => $recentWords,
+            'wordsDueForReview' => $wordsDueForReview,
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('Words/Create'); // Assuming you have a Vue page at resources/js/Pages/Words/Create.vue

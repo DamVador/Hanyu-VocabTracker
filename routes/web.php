@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\WordController;
+use App\Http\Controllers\ProfileController;
 
 // Route::get('/', function () {
 //     return Inertia::render('Welcome');
@@ -15,9 +16,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [WordController::class, 'dashboardHome'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::get('/words', function () {
     return Inertia::render('Word');
@@ -34,6 +35,13 @@ Route::get('/words/create', [WordController::class, 'create'])
 Route::post('/words', [WordController::class, 'save'])
     ->middleware(['auth', 'verified'])
     ->name('words.save');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('Profile.edit');
+    Route::patch('/profile/information', [ProfileController::class, 'updateProfileInformation'])->name('Profile.update-information');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('Profile.update-password');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('Profile.destroy');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
