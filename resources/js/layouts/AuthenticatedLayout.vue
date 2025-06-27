@@ -1,12 +1,10 @@
 <script setup>
-import Navbar from '@/Components/Navbar.vue'; // Make sure your Navbar component path is correct
-import FlashMessages from '@/Components/FlashMessages.vue'; // We'll create this next
-import { Head } from '@inertiajs/vue3'; // For setting the document title
+import Navbar from '@/Components/Navbar.vue';
+import FlashMessages from '@/Components/FlashMessages.vue';
+import { Head } from '@inertiajs/vue3';
 
-// You can define common props here for the layout if needed,
-// e.g., if you want to pass user info directly to the layout, though often Navbar handles this.
 defineProps({
-  title: String, // Optional: for dynamic page titles in the header slot
+  title: String,
 });
 </script>
 

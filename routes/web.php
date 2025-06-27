@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\WordController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUserController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -35,6 +37,17 @@ Route::middleware('auth')->group(function () {
     // Route::patch('/words/{word}', [WordController::class, 'update'])->name('words.update');
     // Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
     // OR simply use Route::resource('words', WordController::class); which generates all of them
+});
+
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Admin Dashboard
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Admin User Management
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
+    Route::patch('/admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
+    Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
 });
 
 require __DIR__.'/settings.php';

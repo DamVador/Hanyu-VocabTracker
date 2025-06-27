@@ -4,9 +4,9 @@ import { computed, ref } from 'vue';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const isAdmin = computed(() => user.value && user.value.is_admin); // New computed property for convenience
 
 const showingNavigationDropdown = ref(false);
-
 const toggleNavDropdown = () => {
     showingNavigationDropdown.value = !showingNavigationDropdown.value;
 };
@@ -15,7 +15,8 @@ const navLinks = [
     { name: 'Dashboard', route: 'dashboard', requiresAuth: true },
     // { name: 'My Words', route: 'words.index', requiresAuth: true },
     { name: 'Profile', route: 'Profile.edit', requiresAuth: true },
-    { name: 'Log In', route: 'login', requiresAuth: false, isPrimary: true },
+    { name: 'Admin', route: 'admin.dashboard', requiresAuth: true, requiresAdmin: true }, // Add this link
+    // { name: 'Log In', route: 'login', requiresAuth: false, isPrimary: true },
     { name: 'Register', route: 'register', requiresAuth: false, isBordered: true },
     { name: 'Log Out', route: 'logout', requiresAuth: true, isLogout: true },
 ];
@@ -25,15 +26,19 @@ const navLinks = [
     <nav class="bg-gray-800 text-white p-4 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
+                <!-- Left side: App Name / Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                    <Link :href="user ? route('dashboard') : route('login')" class="text-2xl font-bold text-white hover:text-gray-200 transition">
-                        Hanyu VocabTracker
+                    <Link :href="user ? (isAdmin ? route('admin.dashboard') : route('dashboard')) : route('login')" class="text-2xl font-bold text-white hover:text-gray-200 transition">
+                       Hanyu VocabTracker
                     </Link>
                 </div>
 
+                <!-- Desktop Navigation Links -->
                 <div class="hidden md:flex items-center space-x-4">
                     <template v-for="link in navLinks" :key="link.name">
-                        <template v-if="link.requiresAuth === !!user">
+                        <!-- Add condition for requiresAdmin -->
+                        <template v-if="link.requiresAuth === !!user && (!link.requiresAdmin || isAdmin)">
+                            <!-- Regular Links -->
                             <Link
                                 v-if="!link.isPrimary && !link.isBordered && !link.isLogout"
                                 :href="route(link.route)"
@@ -42,6 +47,7 @@ const navLinks = [
                                 {{ link.name }}
                             </Link>
 
+                            <!-- Primary/Login Button Style -->
                             <Link
                                 v-else-if="link.isPrimary"
                                 :href="route(link.route)"
@@ -50,6 +56,7 @@ const navLinks = [
                                 {{ link.name }}
                             </Link>
 
+                            <!-- Bordered/Register Button Style -->
                             <Link
                                 v-else-if="link.isBordered"
                                 :href="route(link.route)"
@@ -58,6 +65,7 @@ const navLinks = [
                                 {{ link.name }}
                             </Link>
 
+                            <!-- Logout Button -->
                             <Link
                                 v-else-if="link.isLogout"
                                 :href="route(link.route)"
@@ -71,6 +79,7 @@ const navLinks = [
                     </template>
                 </div>
 
+                <!-- Mobile Hamburger Button -->
                 <div class="-mr-2 flex items-center md:hidden">
                     <button
                         @click="toggleNavDropdown"
@@ -116,6 +125,7 @@ const navLinks = [
             </div>
         </div>
 
+        <!-- Mobile Navigation Menu -->
         <Transition
             enter-active-class="transition ease-out duration-200"
             enter-from-class="transform opacity-0 scale-95"
@@ -127,7 +137,9 @@ const navLinks = [
             <div v-show="showingNavigationDropdown" class="md:hidden">
                 <div class="pt-2 pb-3 space-y-1">
                     <template v-for="link in navLinks" :key="link.name + '-mobile'">
-                        <template v-if="link.requiresAuth === !!user">
+                        <!-- Add condition for requiresAdmin -->
+                        <template v-if="link.requiresAuth === !!user && (!link.requiresAdmin || isAdmin)">
+                            <!-- Regular Links -->
                             <Link
                                 v-if="!link.isPrimary && !link.isBordered && !link.isLogout"
                                 :href="route(link.route)"
@@ -137,6 +149,7 @@ const navLinks = [
                                 {{ link.name }}
                             </Link>
 
+                            <!-- Primary/Login Button Style -->
                             <Link
                                 v-else-if="link.isPrimary"
                                 :href="route(link.route)"
@@ -146,6 +159,7 @@ const navLinks = [
                                 {{ link.name }}
                             </Link>
 
+                            <!-- Bordered/Register Button Style -->
                             <Link
                                 v-else-if="link.isBordered"
                                 :href="route(link.route)"
@@ -155,6 +169,7 @@ const navLinks = [
                                 {{ link.name }}
                             </Link>
 
+                            <!-- Logout Button -->
                             <Link
                                 v-else-if="link.isLogout"
                                 :href="route(link.route)"
