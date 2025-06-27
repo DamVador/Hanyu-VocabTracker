@@ -1,36 +1,33 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
-import { computed, watch, ref } from 'vue'; // Import ref and watch
+import { computed, watch, ref } from 'vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
     users: Object, // Paginated users data
     filters: Object, // Current filter values (search, role)
-    allRoles: Array, // All available role names
+    allRoles: Array,
 });
 
 const flash = computed(() => usePage().props.flash);
 
-// Form for filters
 const form = ref({
     search: props.filters.search || '',
     role: props.filters.role || '',
 });
 
-// Watch for changes in search and role filters and submit the form
 watch(() => form.value.search, (value) => {
-    // Debounce search input to prevent too many requests
     let timeoutId;
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
         applyFilters();
-    }, 300); // Wait 300ms after typing stops
+    }, 300);
 });
 
 watch(() => form.value.role, (value) => {
-    applyFilters(); // Apply role filter immediately
+    applyFilters();
 });
 
 const applyFilters = () => {
@@ -38,9 +35,9 @@ const applyFilters = () => {
         search: form.value.search,
         role: form.value.role,
     }, {
-        preserveState: true, // Keep the current scroll position and component state
-        preserveScroll: true, // Maintain scroll position
-        replace: true, // Replace the current history entry
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
     });
 };
 
