@@ -1,15 +1,54 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
+import { computed, watch, ref } from 'vue'; // Import ref and watch
 
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
     users: Object, // Paginated users data
+    filters: Object, // Current filter values (search, role)
+    allRoles: Array, // All available role names
 });
 
 const flash = computed(() => usePage().props.flash);
+
+// Form for filters
+const form = ref({
+    search: props.filters.search || '',
+    role: props.filters.role || '',
+});
+
+// Watch for changes in search and role filters and submit the form
+watch(() => form.value.search, (value) => {
+    // Debounce search input to prevent too many requests
+    let timeoutId;
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+        applyFilters();
+    }, 300); // Wait 300ms after typing stops
+});
+
+watch(() => form.value.role, (value) => {
+    applyFilters(); // Apply role filter immediately
+});
+
+const applyFilters = () => {
+    router.get(route('admin.users.index'), {
+        search: form.value.search,
+        role: form.value.role,
+    }, {
+        preserveState: true, // Keep the current scroll position and component state
+        preserveScroll: true, // Maintain scroll position
+        replace: true, // Replace the current history entry
+    });
+};
+
+const resetFilters = () => {
+    form.value.search = '';
+    form.value.role = '';
+    applyFilters();
+};
 </script>
 
 <template>
@@ -21,6 +60,40 @@ const flash = computed(() => usePage().props.flash);
                 <div class="p-6 text-gray-900">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold">User Management</h2>
+                        </div>
+
+                    <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
+                        <div class="flex-grow w-full sm:w-auto">
+                            <label for="search" class="sr-only">Search</label>
+                            <input
+                                id="search"
+                                type="text"
+                                v-model="form.search"
+                                placeholder="Search by name or email..."
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        <div class="w-full sm:w-auto">
+                            <label for="role" class="sr-only">Filter by Role</label>
+                            <select
+                                id="role"
+                                v-model="form.role"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="">All Roles</option>
+                                <option v-for="roleName in allRoles" :key="roleName" :value="roleName">
+                                    {{ roleName.charAt(0).toUpperCase() + roleName.slice(1) }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <button
+                            @click="resetFilters"
+                            class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full sm:w-auto"
+                        >
+                            Reset Filters
+                        </button>
                     </div>
 
                     <div v-if="users.data.length > 0">
@@ -97,7 +170,7 @@ const flash = computed(() => usePage().props.flash);
 
                     </div>
                     <div v-else class="text-center text-gray-500 py-8">
-                        No users found.
+                        No users found matching your criteria.
                     </div>
                 </div>
             </div>
