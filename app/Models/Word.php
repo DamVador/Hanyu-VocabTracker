@@ -30,4 +30,21 @@ class Word extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
+
+    /**
+     * Get the history records for the word.
+     * This defines the relationship between a Word and its History records.
+     */
+    public function histories()
+    {
+        return $this->hasMany(History::class); // A Word has many History records
+    }
+
+    /**
+     * The study sessions that this word belongs to.
+     */
+    public function studySessions(): BelongsToMany
+    {
+        return $this->belongsToMany(StudySession::class);
+    }
 }

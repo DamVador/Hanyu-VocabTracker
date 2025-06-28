@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Tag;
 use Illuminate\Validation\Rule;
+use App\Models\History;
+use Illuminate\Support\Carbon;
 
 class WordController extends Controller
 {
@@ -189,5 +191,74 @@ class WordController extends Controller
         $word->delete();
 
         return redirect()->route('words.index')->with('success', 'Word deleted successfully!');
+    }
+
+    /**
+     * Record a study event for a specific word. (This method remains here)
+     */
+    public function recordStudy(Request $request, Word $word)
+    {
+        if ($word->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action. You do not own this word.');
+        }
+
+        $validated = $request->validate([
+            'correct' => 'required|boolean',
+        ]);
+
+        $isCorrect = $validated['correct'];
+        $user = $request->user();
+
+        $history = History::firstOrNew([
+            'word_id' => $word->id,
+            'user_id' => $user->id,
+        ]);
+
+        if (!$history->exists) {
+            $history->revision_interval = 0; // Days
+            $history->consecutive_correct_revisions = 0;
+            $history->total_incorrect_revisions = 0;
+            $history->learning_status = 'Revise'; // TODO - Default status for new words or other status ?
+        }
+
+        // --- SRS Logic (Simplified Anki-like algorithm) ---
+        if ($isCorrect) {
+            $history->consecutive_correct_revisions++;
+            $history->total_incorrect_revisions = 0; // Reset if correct
+
+            if ($history->consecutive_correct_revisions === 1) {
+                $history->revision_interval = 1; // 1 day
+            } elseif ($history->consecutive_correct_revisions === 2) {
+                $history->revision_interval = 3; // 3 days
+            } else {
+                // Exponential increase for consecutive correct answers
+                $history->revision_interval = $history->revision_interval * 2;
+                if ($history->revision_interval === 0) { // Catch case if initial was 0
+                     $history->revision_interval = 1; // Prevent 0 interval if somehow it gets there
+                }
+            }
+
+            if ($history->consecutive_correct_revisions >= 5) { // Example threshold for 'Mastered'
+                $history->learning_status = 'Mastered';
+            } else {
+                $history->learning_status = 'Revise';
+            }
+
+        } else { // User got it incorrect
+            $history->consecutive_correct_revisions = 0; // Reset consecutive
+            $history->total_incorrect_revisions++;
+            $history->revision_interval = 0; // Reset interval to 0 or 1 day for immediate re-review
+            $history->learning_status = 'Forgot';
+        }
+
+        $history->last_revision = Carbon::now();
+        $history->next_revision = Carbon::now()->addDays($history->revision_interval);
+
+        $history->save();
+
+        return response()->json([
+            'message' => 'Study record updated successfully!',
+            'history' => $history->toArray(), // Return the updated history data
+        ]);
     }
 }

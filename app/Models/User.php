@@ -122,4 +122,9 @@ class User extends Authenticatable //implements MustVerifyEmail
             $this->roles()->detach($role);
         }
     }
+
+    public function studySessions()
+    {
+        return $this->hasMany(StudySession::class); // Assuming you have a StudySession model
+    }
 }

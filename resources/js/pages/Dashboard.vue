@@ -20,9 +20,27 @@ defineProps({
       <h2 class="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800">
         Welcome back, {{ $page.props.auth.user.name }}!
       </h2>
-      <p class="text-base sm:text-lg text-gray-600 mt-2">
+      <p class="text-base sm:text-lg text-gray-600 mt-2 mb-10">
         Ready to expand your vocabulary?
       </p>
+
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="text-gray-900">
+          <div class="flex flex-wrap gap-4">
+              <Link :href="route('study.index')" class="inline-flex items-center px-6 py-3 bg-blue-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
+                  Start Automatic Study Session
+              </Link>
+
+              <Link :href="route('study-sessions.index')" class="inline-flex items-center px-6 py-3 bg-purple-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
+                  Manage Study Sessions
+              </Link>
+
+              <Link :href="route('words.index')" class="inline-flex items-center px-6 py-3 bg-gray-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
+                  My Words Dictionary
+              </Link>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

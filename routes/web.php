@@ -6,6 +6,8 @@ use App\Http\Controllers\WordController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\StudyController;
+use App\Http\Controllers\StudySessionController; 
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -34,6 +36,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/words/{word}/edit', [WordController::class, 'edit'])->name('words.edit');
     Route::patch('/words/{word}', [WordController::class, 'update'])->name('words.update');
     Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
+
+    // This route is for recording study progress. It remains under words
+    // because it's an action directly pertaining to a specific 'word' resource.
+    Route::post('/words/{word}/record-study', [WordController::class, 'recordStudy'])->name('words.recordStudy');
+
+    // Automatic study session
+    Route::get('/study', [StudyController::class, 'autoReviewIndex'])->name('study.index'); // Renamed to autoReviewIndex
+
+    // Study Session Management Routes
+    Route::resource('study-sessions', StudySessionController::class);
+    Route::get('/study-sessions/{study_session}/review', [StudyController::class, 'sessionReview'])->name('study.sessionReview');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
