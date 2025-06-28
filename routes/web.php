@@ -31,12 +31,9 @@ Route::middleware('auth')->group(function () {
         ->middleware(['auth', 'verified'])
         ->name('words.create');
     Route::post('/words', [WordController::class, 'save'])->name('words.save');
-
-    // If you plan to implement edit/delete later, you might use:
-    // Route::get('/words/{word}/edit', [WordController::class, 'edit'])->name('words.edit');
-    // Route::patch('/words/{word}', [WordController::class, 'update'])->name('words.update');
-    // Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
-    // OR simply use Route::resource('words', WordController::class); which generates all of them
+    Route::get('/words/{word}/edit', [WordController::class, 'edit'])->name('words.edit');
+    Route::patch('/words/{word}', [WordController::class, 'update'])->name('words.update');
+    Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

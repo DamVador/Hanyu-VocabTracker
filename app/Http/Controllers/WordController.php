@@ -7,31 +7,62 @@ use App\Models\Word;
 use App\Http\Requests\StoreWordRequest;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use App\Models\Tag;
+use Illuminate\Validation\Rule;
 
 class WordController extends Controller
 {
-    public function index2()
-    {
-        $words = Word::all();
-
-        return inertia('Words/Index2', compact('words'));
-    }
-    
     public function index(Request $request)
     {
-        $words = $request->user()->words()
-                         ->latest()
-                         ->paginate(10);
+        $user = $request->user();
+
+        $searchPinyin = $request->input('search_pinyin');
+        $searchTranslation = $request->input('search_translation');
+        $filterTag = $request->input('tag');
+        $sortBy = $request->input('sort_by', 'pinyin');
+        $sortDirection = $request->input('sort_direction', 'asc');
+
+        $wordsQuery = $user->words()->with('tags');
+
+        if ($searchPinyin) {
+            $wordsQuery->where('pinyin', 'like', '%' . $searchPinyin . '%');
+        }
+        if ($searchTranslation) {
+            $wordsQuery->where('translation', 'like', '%' . $searchTranslation . '%');
+        }
+
+        if ($filterTag) {
+            $wordsQuery->whereHas('tags', function ($query) use ($filterTag) {
+                $query->where('name', $filterTag);
+            });
+        }
+
+        $allowedSortBy = ['pinyin', 'translation', 'chinese_word', 'created_at'];
+        if (!in_array($sortBy, $allowedSortBy)) {
+            $sortBy = 'pinyin';
+        }
+        if (!in_array($sortDirection, ['asc', 'desc'])) {
+            $sortDirection = 'asc';
+        }
+        $wordsQuery->orderBy($sortBy, $sortDirection);
+
+        $words = $wordsQuery->paginate(10)->withQueryString();
+
+        $allTags = Tag::whereHas('words', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->pluck('name')->toArray();
 
         return Inertia::render('Words/Index', [
             'words' => $words->through(fn ($word) => [
                 'id' => $word->id,
-                'chinese_character' => $word->chinese_word,
+                'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
-                'tags' => $word->tags,
+                'tags' => $word->tags->pluck('name')->toArray(),
                 'created_at' => $word->created_at->format('M d, Y'),
             ]),
+            'filters' => $request->only(['search_pinyin', 'search_translation', 'tag', 'sort_by', 'sort_direction']),
+            'allTags' => $allTags,
         ]);
     }
 
@@ -55,39 +86,108 @@ class WordController extends Controller
 
     public function create()
     {
-        return Inertia::render('Words/Create');
+        $allTags = Tag::pluck('name')->toArray();
+        return Inertia::render('Words/Create', [
+            'allTags' => $allTags,
+        ]);
     }
 
-    public function save(StoreWordRequest $request)
+
+    public function save(Request $request)
     {
-        $validatedData = $request->validated();
-        $user = Auth::user();
+        $validated = $request->validate([
+            'chinese_word' => 'required|string|max:255',
+            'pinyin' => 'required|string|max:255',
+            'translation' => 'required|string|max:255',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:255',
+        ]);
 
-        $word = new Word();
+        $word = $request->user()->words()->create([
+            'chinese_word' => $validated['chinese_word'],
+            'pinyin' => $validated['pinyin'],
+            'translation' => $validated['translation'],
+        ]);
 
-        $word->chinese_word = $validatedData['chinese_word'];
-        $word->pinyin = $validatedData['pinyin'];
-        $word->translation = $validatedData['translation'];
-
-        $existingWord = $user->words()
-                            ->where('chinese_word', $word->chinese_word)
-                            ->where('pinyin', $word->pinyin)
-                             ->first();
-
-        if ($existingWord) {
-            return redirect()->back()->with('error', 'This word ("' . $validatedData['chinese_word'] . '") has already been added to your vocabulary!');
+        if (isset($validated['tags']) && !empty($validated['tags'])) {
+            $tagIds = [];
+            foreach ($validated['tags'] as $tagName) {
+                $tag = Tag::firstOrCreate(['name' => $tagName]);
+                $tagIds[] = $tag->id;
+            }
+            $word->tags()->attach($tagIds);
         }
 
-        $word->user_id = Auth::id();
-
-        $word->tags = $validatedData['tags'] ?? [];
-
-        $word->save();
-
-        return redirect()->route('dashboard')->with('success', 'Word added successfully!');
-
-        // To redirect back to the form page:
-        // return redirect()->back()->with('success', 'Word added successfully!');
+        return redirect()->route('words.index')->with('success', 'Word created successfully!');
     }
 
+    public function edit(Word $word)
+    {
+        if ($word->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $allTags = Tag::pluck('name')->toArray();
+
+        return Inertia::render('Words/Edit', [
+            'word' => [
+                'id' => $word->id,
+                'chinese_word' => $word->chinese_word,
+                'pinyin' => $word->pinyin,
+                'translation' => $word->translation,
+                'current_tags' => $word->tags->pluck('name')->toArray(),
+            ],
+            'allTags' => $allTags,
+        ]);
+    }
+
+    /**
+     * Update the specified word in storage.
+     */
+    public function update(Request $request, Word $word)
+    {
+        if ($word->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'chinese_word' => 'required|string|max:255',
+            'pinyin' => 'required|string|max:255',
+            'translation' => 'required|string|max:255',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:255',
+        ]);
+
+        $word->update([
+            'chinese_word' => $validated['chinese_word'],
+            'pinyin' => $validated['pinyin'],
+            'translation' => $validated['translation'],
+        ]);
+
+        if (isset($validated['tags']) && !empty($validated['tags'])) {
+            $tagIds = [];
+            foreach ($validated['tags'] as $tagName) {
+                $tag = Tag::firstOrCreate(['name' => $tagName]);
+                $tagIds[] = $tag->id;
+            }
+            $word->tags()->sync($tagIds);
+        } else {
+            $word->tags()->detach();
+        }
+
+        return redirect()->route('words.index')->with('success', 'Word updated successfully!');
+    }
+
+    public function destroy(Word $word)
+    {
+        if ($word->user_id !== auth()->id()) {
+            // If you have roles/permissions, you might add:
+            // && !auth()->user()->hasRole('admin')
+            abort(403, 'Unauthorized action. You do not own this word.');
+        }
+
+        $word->delete();
+
+        return redirect()->route('words.index')->with('success', 'Word deleted successfully!');
+    }
 }
