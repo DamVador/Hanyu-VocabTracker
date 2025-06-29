@@ -2,7 +2,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
-import axios from 'axios'; // <-- Import Axios
+import axios from 'axios';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -85,8 +86,11 @@ const resetSession = () => {
                         <h3 class="text-xl font-bold text-green-700 mb-4">Session Complete! 🎉</h3>
                         <p class="text-gray-700 mb-4">You've reviewed all {{ props.wordsForSession.length }} words for this session.</p>
                         <button @click="resetSession" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            Start New Session
+                            Restart Session
                         </button>
+                        <Link :href="route('study-sessions.index')" class="inline-flex items-center px-4 py-2 ml-4 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Back to Sessions
+                        </Link>
                     </div>
 
                     <div v-else>
