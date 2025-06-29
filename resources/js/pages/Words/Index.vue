@@ -46,18 +46,31 @@ const resetFilters = () => {
     applyFilters();
 };
 
+const deleteWord = (wordId) => {
+    if (confirm('Are you sure you want to delete this word? ')) {
+        router.delete(route('words.destroy', wordId), {
+            onSuccess: () => {
+                // Success message will be shown via flash.success
+            },
+            onError: (errors) => {
+                alert('Failed to delete word: ' + Object.values(errors).join('\n'));
+            }
+        });
+    }
+};
+
 watch(
     () => form.value.search_pinyin,
     (value) => {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => applyFilters(), 300); // applyFilters is now defined
+        searchTimeout = setTimeout(() => applyFilters(), 300);
     }
 );
 watch(
     () => form.value.search_translation,
     (value) => {
         clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => applyFilters(), 300); // applyFilters is now defined
+        searchTimeout = setTimeout(() => applyFilters(), 300);
     }
 );
 watch(() => form.value.tag, applyFilters);
@@ -185,7 +198,7 @@ watch(() => form.value.sort_direction, applyFilters);
                                             {{ word.translation }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <span v-for="(tag, index) in word.tags" :key="index" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mr-1">
+                                            <span v-for="(tag, index) in word.tags" :key="index" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-1">
                                                 {{ tag }}
                                             </span>
                                             <span v-if="word.tags.length === 0" class="text-gray-400">None</span>
@@ -195,7 +208,8 @@ watch(() => form.value.sort_direction, applyFilters);
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <Link :href="route('words.edit', word.id)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
-                                            </td>
+                                            <button @click="deleteWord(word.id)" class="text-red-600 hover:text-red-900">Delete</button>                                         
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

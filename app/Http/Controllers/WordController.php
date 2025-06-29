@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Word;
+use App\Models\Tag;
+use App\Models\History;
+use App\Models\StudySession;
 use App\Http\Requests\StoreWordRequest;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Models\Tag;
 use Illuminate\Validation\Rule;
-use App\Models\History;
 use Illuminate\Support\Carbon;
 
 class WordController extends Controller
@@ -86,11 +87,13 @@ class WordController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $allTags = Tag::pluck('name')->toArray();
+        $userStudySessions = $request->user()->studySessions()->select('id', 'name')->get();
         return Inertia::render('Words/Create', [
             'allTags' => $allTags,
+            'userStudySessions' => $userStudySessions,
         ]);
     }
 
@@ -103,6 +106,8 @@ class WordController extends Controller
             'translation' => 'required|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
+            'study_session_ids' => 'nullable|array',
+            'study_session_ids.*' => 'exists:study_sessions,id',
         ]);
 
         $word = $request->user()->words()->create([
@@ -120,16 +125,25 @@ class WordController extends Controller
             $word->tags()->attach($tagIds);
         }
 
+        if (isset($validated['study_session_ids'])) {
+            $word->studySessions()->attach($validated['study_session_ids']);
+        }
+
         return redirect()->route('words.index')->with('success', 'Word created successfully!');
     }
 
-    public function edit(Word $word)
+    public function edit(Request $request, Word $word)
     {
         if ($word->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
 
+        $word->load('tags');
         $allTags = Tag::pluck('name')->toArray();
+
+        $userStudySessions = $request->user()->studySessions()->select('id', 'name')->get();
+
+        $attachedStudySessionIds = $word->studySessions()->pluck('study_sessions.id')->toArray();
 
         return Inertia::render('Words/Edit', [
             'word' => [
@@ -137,9 +151,11 @@ class WordController extends Controller
                 'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
-                'current_tags' => $word->tags->pluck('name')->toArray(),
             ],
+            'currentTags' => $word->tags->pluck('name')->toArray(),
             'allTags' => $allTags,
+            'userStudySessions' => $userStudySessions,
+            'attachedStudySessionIds' => $attachedStudySessionIds,
         ]);
     }
 
@@ -158,6 +174,8 @@ class WordController extends Controller
             'translation' => 'required|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
+            'study_session_ids' => 'nullable|array',
+            'study_session_ids.*' => 'exists:study_sessions,id',
         ]);
 
         $word->update([
@@ -177,13 +195,14 @@ class WordController extends Controller
             $word->tags()->detach();
         }
 
+        $word->studySessions()->sync($validated['study_session_ids'] ?? []);
+
         return redirect()->route('words.index')->with('success', 'Word updated successfully!');
     }
 
     public function destroy(Word $word)
     {
         if ($word->user_id !== auth()->id()) {
-            // If you have roles/permissions, you might add:
             // && !auth()->user()->hasRole('admin')
             abort(403, 'Unauthorized action. You do not own this word.');
         }
@@ -221,6 +240,8 @@ class WordController extends Controller
             $history->learning_status = 'Revise'; // TODO - Default status for new words or other status ?
         }
 
+        // TODO  ||--------> UPDATE ALGO, consider the new study session logic <--------
+        //       \/
         // --- SRS Logic (Simplified Anki-like algorithm) ---
         if ($isCorrect) {
             $history->consecutive_correct_revisions++;
