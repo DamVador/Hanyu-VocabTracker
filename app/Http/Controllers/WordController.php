@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB; // For subqueries
+
 
 class WordController extends Controller
 {
@@ -21,51 +23,127 @@ class WordController extends Controller
 
         $searchPinyin = $request->input('search_pinyin');
         $searchTranslation = $request->input('search_translation');
-        $filterTag = $request->input('tag');
+        $tag = $request->input('tag');
         $sortBy = $request->input('sort_by', 'pinyin');
         $sortDirection = $request->input('sort_direction', 'asc');
+        $selectedLearningStatuses = $request->input('learning_statuses', []);
 
-        $wordsQuery = $user->words()->with('tags');
+        $query = Word::query()->where('user_id', $user->id);
 
+        // Apply search filters
         if ($searchPinyin) {
-            $wordsQuery->where('pinyin', 'like', '%' . $searchPinyin . '%');
+            $query->where('pinyin', 'like', '%' . $searchPinyin . '%');
         }
         if ($searchTranslation) {
-            $wordsQuery->where('translation', 'like', '%' . $searchTranslation . '%');
+            $query->where('translation', 'like', '%' . $searchTranslation . '%');
         }
 
-        if ($filterTag) {
-            $wordsQuery->whereHas('tags', function ($query) use ($filterTag) {
-                $query->where('name', $filterTag);
+        // Apply tag filter
+        if ($tag) {
+            $query->whereHas('tags', function ($q) use ($tag) {
+                $q->where('name', $tag);
             });
         }
 
-        $allowedSortBy = ['pinyin', 'translation', 'chinese_word', 'created_at'];
-        if (!in_array($sortBy, $allowedSortBy)) {
-            $sortBy = 'pinyin';
-        }
-        if (!in_array($sortDirection, ['asc', 'desc'])) {
-            $sortDirection = 'asc';
-        }
-        $wordsQuery->orderBy($sortBy, $sortDirection);
+        // Add 'failed_attempts' using withSum on 'total_incorrect_revisions'
+        $query->withSum(['histories as failed_attempts' => function ($historyQuery) use ($user) {
+            $historyQuery->where('user_id', $user->id);
+        }], 'total_incorrect_revisions');
 
-        $words = $wordsQuery->paginate(10)->withQueryString();
+        $query->withMax(['histories as last_revision_date' => function ($historyQuery) use ($user) {
+            $historyQuery->where('user_id', $user->id);
+        }], 'created_at');
 
-        $allTags = Tag::whereHas('words', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })->pluck('name')->toArray();
+        // To get the latest learning_status
+        $latestStatusPerWord = DB::table('histories as h1')
+            ->select('h1.word_id', 'h1.learning_status')
+            ->join(
+                DB::raw('(SELECT word_id, MAX(created_at) as max_created_at FROM histories WHERE user_id = ' . $user->id . ' GROUP BY word_id) as h2'),
+                function($join) {
+                    $join->on('h1.word_id', '=', 'h2.word_id')
+                         ->on('h1.created_at', '=', 'h2.max_created_at');
+                }
+            )
+            ->where('h1.user_id', $user->id);
+
+        $query->leftJoinSub($latestStatusPerWord, 'latest_word_history', function ($join) {
+            $join->on('words.id', '=', 'latest_word_history.word_id');
+        })
+        ->addSelect('latest_word_history.learning_status as current_learning_status');
+
+        // New: Apply learning_status filter
+        if (!empty($selectedLearningStatuses)) {
+            // Filter words based on their current_learning_status.
+             $query->whereIn('latest_word_history.learning_status', $selectedLearningStatuses)
+                   ->orWhere(function ($q) use ($selectedLearningStatuses) {
+                       // If 'New' is selected and there's no history, include these words.
+                       // This handles words that don't appear in the history table yet.
+                       if (in_array('New', $selectedLearningStatuses)) {
+                           $q->whereNull('latest_word_history.learning_status');
+                       }
+                   });
+        }
+
+        $sortColumnMap = [
+            'pinyin' => 'pinyin',
+            'translation' => 'translation',
+            'chinese_word' => 'chinese_word',
+            'created_at' => 'created_at',
+            'failed_attempts' => 'failed_attempts',
+            'last_revision_date' => 'last_revision_date',
+            'learning_status' => 'current_learning_status',
+        ];
+
+        $dbSortColumn = $sortColumnMap[$sortBy] ?? 'pinyin';
+
+        $query->orderBy($dbSortColumn, $sortDirection);
+
+
+        // Paginate the results and append query string for filters
+        $words = $query->with('tags')
+                       ->paginate(10)
+                       ->withQueryString();
+
+        // Map the collection for Inertia
+        $words->through(fn ($word) => [
+            'id' => $word->id,
+            'chinese_word' => $word->chinese_word,
+            'pinyin' => $word->pinyin,
+            'translation' => $word->translation,
+            'tags' => $word->tags->pluck('name')->toArray(),
+            'created_at' => Carbon::parse($word->created_at)->format('M d, Y'),
+            'failed_attempts' => $word->failed_attempts ?? 0,
+            'last_revision_date' => $word->last_revision_date ? Carbon::parse($word->last_revision_date)->format('M d, Y') : 'Never',
+            'learning_status' => $word->current_learning_status ?? 'New',
+        ]);
+
+        // Get all unique tags for the filter dropdown
+        $allTags = Tag::pluck('name')->unique()->sort()->values()->all();
+
+        $allLearningStatuses = History::select('learning_status')
+                                ->where('user_id', $user->id)
+                                ->distinct()
+                                ->pluck('learning_status')
+                                ->toArray();
+
+        if (!in_array('New', $allLearningStatuses)) {
+            array_unshift($allLearningStatuses, 'New');
+        }
+        sort($allLearningStatuses);
+
 
         return Inertia::render('Words/Index', [
-            'words' => $words->through(fn ($word) => [
-                'id' => $word->id,
-                'chinese_word' => $word->chinese_word,
-                'pinyin' => $word->pinyin,
-                'translation' => $word->translation,
-                'tags' => $word->tags->pluck('name')->toArray(),
-                'created_at' => $word->created_at->format('M d, Y'),
-            ]),
-            'filters' => $request->only(['search_pinyin', 'search_translation', 'tag', 'sort_by', 'sort_direction']),
+            'words' => $words,
+            'filters' => [
+                'search_pinyin' => $searchPinyin,
+                'search_translation' => $searchTranslation,
+                'tag' => $tag,
+                'sort_by' => $sortBy,
+                'sort_direction' => $sortDirection,
+                'learning_statuses' => $selectedLearningStatuses, // Pass back selected statuses
+            ],
             'allTags' => $allTags,
+            'allLearningStatuses' => $allLearningStatuses, // Pass distinct statuses to frontend
         ]);
     }
 

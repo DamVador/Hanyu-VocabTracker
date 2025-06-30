@@ -3,12 +3,18 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import Checkbox from '@/Components/Checkbox.vue';
+
+
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
     words: Object,
     filters: Object,
     allTags: Array,
+    allLearningStatuses: Array,
 });
 
 const flash = computed(() => usePage().props.flash);
@@ -19,18 +25,22 @@ const form = ref({
     tag: props.filters.tag || '',
     sort_by: props.filters.sort_by || 'pinyin',
     sort_direction: props.filters.sort_direction || 'asc',
+    learning_statuses: props.filters.learning_statuses || [],
 });
 
 let searchTimeout = null;
 
 const applyFilters = () => {
-    router.get(route('words.index'), {
+    const params = {
         search_pinyin: form.value.search_pinyin,
         search_translation: form.value.search_translation,
         tag: form.value.tag,
         sort_by: form.value.sort_by,
         sort_direction: form.value.sort_direction,
-    }, {
+        learning_statuses: form.value.learning_statuses,
+    };
+
+    router.get(route('words.index'), params, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
@@ -43,12 +53,13 @@ const resetFilters = () => {
     form.value.tag = '';
     form.value.sort_by = 'pinyin';
     form.value.sort_direction = 'asc';
+    form.value.learning_statuses = [];
     applyFilters();
 };
 
 const deleteWord = (wordId) => {
     if (confirm('Are you sure you want to delete this word? ')) {
-        router.delete(route('words.destroy', wordId), {
+        router.delete(route('words.destroy', { word: wordId }), {
             onSuccess: () => {
                 // Success message will be shown via flash.success
             },
@@ -73,45 +84,47 @@ watch(
         searchTimeout = setTimeout(() => applyFilters(), 300);
     }
 );
+
 watch(() => form.value.tag, applyFilters);
 watch(() => form.value.sort_by, applyFilters);
 watch(() => form.value.sort_direction, applyFilters);
+watch(() => form.value.learning_statuses, applyFilters);
 </script>
 
 <template>
     <Head title="My Words" />
 
+    
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                        <h2 class="text-2xl font-semibold mb-0">My Vocabulary</h2>
-                        <Link :href="route('words.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                            Add New Word
-                        </Link>
-                    </div>
-
-                    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-black">
+                
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+                    <h2 class="font-semibold text-xl text-gray-800 leading-tight mb-0">My Vocabulary</h2>
+                    <Link :href="route('words.create')">
+                        <PrimaryButton>Add New Word</PrimaryButton>
+                    </Link>
+                </div>
+                    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end">
                         <div>
                             <label for="search_pinyin" class="block text-sm font-medium text-gray-700 mb-1">Search Pinyin</label>
-                            <input
+                            <TextInput
                                 id="search_pinyin"
                                 type="text"
                                 v-model="form.search_pinyin"
                                 placeholder="Search by Pinyin..."
-                                class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full"
                             />
                         </div>
 
                         <div>
                             <label for="search_translation" class="block text-sm font-medium text-gray-700 mb-1">Search Translation</label>
-                            <input
+                            <TextInput
                                 id="search_translation"
                                 type="text"
                                 v-model="form.search_translation"
                                 placeholder="Search by translation..."
-                                class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="w-full"
                             />
                         </div>
 
@@ -138,7 +151,11 @@ watch(() => form.value.sort_direction, applyFilters);
                             >
                                 <option value="pinyin">Pinyin</option>
                                 <option value="translation">Translation</option>
-                                <option value="chinese_word">Chinese Word</option> <option value="created_at">Date Added</option>
+                                <option value="chinese_word">Chinese Word</option>
+                                <option value="created_at">Date Added</option>
+                                <option value="failed_attempts">Failed Attempts</option>
+                                <option value="last_revision_date">Last Revision</option>
+                                <option value="learning_status">Learning Status</option>
                             </select>
                         </div>
 
@@ -152,6 +169,21 @@ watch(() => form.value.sort_direction, applyFilters);
                                 <option value="asc">Ascending</option>
                                 <option value="desc">Descending</option>
                             </select>
+                        </div>
+
+                        <div class="col-span-full md:col-span-2 lg:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Filter</label>
+                            <div class="flex flex-wrap gap-2">
+                                <div v-for="status in allLearningStatuses" :key="status" class="flex items-center">
+                                    <Checkbox
+                                        :id="`status-${status}`"
+                                        :value="status"
+                                        v-model:checked="form.learning_statuses"
+                                        class="mr-1"
+                                    />
+                                    <label :for="`status-${status}`" class="text-sm text-gray-600">{{ status }}</label>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-span-full md:col-span-2 lg:col-span-1">
@@ -170,7 +202,8 @@ watch(() => form.value.sort_direction, applyFilters);
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Chinese Word </th>
+                                            Chinese Word
+                                        </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Pinyin
                                         </th>
@@ -178,9 +211,19 @@ watch(() => form.value.sort_direction, applyFilters);
                                             Translation
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Tags </th>
+                                            Tags
+                                        </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Added On
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Failed Attempts
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Last Revision
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status
                                         </th>
                                         <th scope="col" class="relative px-6 py-3">
                                             <span class="sr-only">Actions</span>
@@ -190,7 +233,8 @@ watch(() => form.value.sort_direction, applyFilters);
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-for="word in words.data" :key="word.id">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ word.chinese_word }} </td>
+                                            {{ word.chinese_word }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {{ word.pinyin }}
                                         </td>
@@ -206,16 +250,25 @@ watch(() => form.value.sort_direction, applyFilters);
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ word.created_at }}
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ word.failed_attempts }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ word.last_revision_date }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ word.learning_status }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link :href="route('words.edit', word.id)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
-                                            <button @click="deleteWord(word.id)" class="text-red-600 hover:text-red-900">Delete</button>                                         
+                                            <Link :href="route('words.edit', { word: word.id })" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
+                                            <button @click="deleteWord(word.id)" class="cursor-pointer text-red-600 hover:text-red-900">Delete</button>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div class="mt-6 flex justify-center">
+                        <div v-if="words.links.length > 3" class="mt-6 flex justify-center">
                             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                                 <Link
                                     v-for="(link, index) in words.links"
@@ -242,5 +295,4 @@ watch(() => form.value.sort_direction, applyFilters);
                 </div>
             </div>
         </div>
-    </div>
 </template>
