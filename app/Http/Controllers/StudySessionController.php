@@ -15,11 +15,30 @@ class StudySessionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        // Get sessions with a count of attached words
-        $studySessions = $user->studySessions()->withCount('words')->get();
+
+        $search = $request->input('search');
+
+        $query = $user->studySessions();
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        $query->orderBy('name', 'asc');
+
+        $studySessions = $query->withCount('words')->get()->map(fn ($session) => [
+            'id' => $session->id,
+            'name' => $session->name,
+            'description' => $session->description,
+            'words_count' => $session->words_count,
+            'created_at' => $session->created_at->format('M d, Y'),
+        ]);
 
         return Inertia::render('StudySessions/Index', [
             'studySessions' => $studySessions,
+            'filters' => [
+                'search' => $search,
+            ],
         ]);
     }
 
