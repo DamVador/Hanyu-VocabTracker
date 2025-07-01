@@ -7,13 +7,14 @@ use App\Models\Word;
 use App\Models\Tag;
 use App\Models\History;
 use App\Models\StudySession;
+use App\Models\User;
 use App\Http\Requests\StoreWordRequest;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB; // For subqueries
-
+use Illuminate\Support\Facades\Schema;
 
 class WordController extends Controller
 {
@@ -147,22 +148,138 @@ class WordController extends Controller
         ]);
     }
 
-    public function dashboardHome()
+    public function dashboardHome(Request $request)
     {
-        $user = Auth::user();
-        $totalWords = $user->words()->count();
-        $recentWords = $user->words()->latest()->take(5)->get();
+        // $user = Auth::user();
+        // $totalWords = $user->words()->count();
+        // $recentWords = $user->words()->latest()->take(5)->get();
 
-        // Placeholder for words due for review
-        // TODO Review system
-        // $wordsDueForReview = $user->words()->where('next_review_date', '<=', now())->count();
-        $wordsDueForReview = 0; // Defaulting to 0 for now
+        // // Placeholder for words due for review
+        // // TODO Review system
+        // // $wordsDueForReview = $user->words()->where('next_review_date', '<=', now())->count();
+        // $wordsDueForReview = 0; // Defaulting to 0 for now
 
-        return Inertia::render('Dashboard', [
-            'totalWords' => $totalWords,
-            'recentWords' => $recentWords,
-            'wordsDueForReview' => $wordsDueForReview,
-        ]);
+        // return Inertia::render('Dashboard', [
+        //     'totalWords' => $totalWords,
+        //     'recentWords' => $recentWords,
+        //     'wordsDueForReview' => $wordsDueForReview,
+        // ]);
+
+
+            $user = $request->user();
+    
+            // 1. Words Added Statistics
+            $wordsAddedThisWeek = Word::where('user_id', $user->id)
+                                      ->where('created_at', '>=', Carbon::now()->startOfWeek())
+                                      ->count();
+            $wordsAddedThisMonth = Word::where('user_id', $user->id)
+                                       ->where('created_at', '>=', Carbon::now()->startOfMonth())
+                                       ->count();
+    
+            // 2. Words Reviewed Statistics
+            $wordsReviewedToday = History::where('user_id', $user->id)
+                                         ->whereDate('created_at', Carbon::today())
+                                         ->distinct('word_id')
+                                         ->count('word_id'); // Count distinct word IDs
+    
+            $wordsReviewedThisWeek = History::where('user_id', $user->id)
+                                            ->where('created_at', '>=', Carbon::now()->startOfWeek())
+                                            ->distinct('word_id')
+                                            ->count('word_id'); // Count distinct word IDs
+    
+            // 3. Average Study Session Length -- 
+            // TODO - update the DB to add a history for study_sessions with start_date and end_date
+
+            // $averageSessionLength = null;
+            // if (Schema::hasTable('study_sessions')) { // Check if table exists
+            //     $totalDurationSeconds = StudySession::where('user_id', $user->id)
+            //                                         ->selectRaw('SUM(TIMESTAMPDIFF(SECOND, start_time, end_time)) as total_seconds')
+            //                                         ->value('total_seconds');
+    
+            //     $totalSessions = StudySession::where('user_id', $user->id)->count();
+    
+            //     if ($totalSessions > 0) {
+            //         $averageDurationInMinutes = round(($totalDurationSeconds / $totalSessions) / 60, 1);
+            //         $averageSessionLength = $averageDurationInMinutes . ' mins';
+            //     } else {
+            //         $averageSessionLength = 'N/A';
+            //     }
+            // } else {
+            //      $averageSessionLength = 'N/A (No study_sessions table)';
+            // }
+    
+    
+            // 4. Streak System
+            $streak = 0;
+            $today = Carbon::today();
+            $lastStudyDate = History::where('user_id', $user->id)
+                                    ->latest('created_at')
+                                    ->value('created_at'); // Get the last study date
+    
+            if ($lastStudyDate) {
+                $lastStudyDay = $lastStudyDate->startOfDay();
+    
+                if ($lastStudyDay->eq($today)) {
+                    $streak = 1; // At least today counts as 1 if studied
+                } elseif ($lastStudyDay->diffInDays($today) === 1 && $lastStudyDay->lt($today)) {
+                    // Studied yesterday, start counting backwards
+                    $streak = 1; // Start with 1 for yesterday
+                } else {
+                    // Not studied today or yesterday, streak is 0
+                    $streak = 0;
+                }
+    
+                // Iterate backwards from the day before last study to count consecutive days
+                // Ensure we don't count today twice if it's already considered
+                $currentDay = $lastStudyDay->copy();
+                if ($lastStudyDay->eq($today)) {
+                    $currentDay->subDay(); // Start counting from yesterday if today was studied
+                }
+    
+                while ($currentDay->greaterThanOrEqualTo($user->created_at->startOfDay())) {
+                    $hasStudiedOnDay = History::where('user_id', $user->id)
+                                              ->whereDate('created_at', $currentDay)
+                                              ->exists();
+                    if ($hasStudiedOnDay) {
+                        $streak++;
+                    } else {
+                        break; // Streak broken
+                    }
+                    $currentDay->subDay();
+                }
+            }
+    
+    
+            // Existing data from your dashboard
+            $totalWords = Word::where('user_id', $user->id)->count();
+    
+            $wordsDueForReview = History::where('user_id', $user->id)
+                                        ->where('next_revision', '<=', Carbon::now())
+                                        ->count();
+    
+    
+            return Inertia::render('Dashboard', [
+                'totalWords' => $totalWords,
+                'recentWords' => Word::where('user_id', $user->id)
+                                     ->with('tags')
+                                     ->latest()
+                                     ->take(5)
+                                     ->get()
+                                     ->map(fn ($word) => [
+                                         'id' => $word->id,
+                                         'chinese_word' => $word->chinese_word,
+                                         'pinyin' => $word->pinyin,
+                                         'translation' => $word->translation,
+                                         'tags' => $word->tags->pluck('name')->toArray(),
+                                     ]),
+                'wordsDueForReview' => $wordsDueForReview,
+                'wordsAddedThisWeek' => $wordsAddedThisWeek,
+                'wordsAddedThisMonth' => $wordsAddedThisMonth,
+                'wordsReviewedToday' => $wordsReviewedToday,
+                'wordsReviewedThisWeek' => $wordsReviewedThisWeek,
+                // 'averageSessionLength' => $averageSessionLength,
+                'currentStreak' => $streak,
+            ]);
     }
 
     public function create(Request $request)
