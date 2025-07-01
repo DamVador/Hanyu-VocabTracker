@@ -13,8 +13,13 @@ const props = defineProps({
 });
 
 const currentWordIndex = ref(0);
-const showTranslation = ref(false);
+// Renamed from showTranslation to showAnswer to be more generic as it will reveal all.
+const showAnswer = ref(false);
 const sessionComplete = ref(false);
+
+// New ref for user's initial display preference
+// Default to 'chinese' but user can change it
+const initialDisplayMode = ref('chinese'); // Can be 'chinese', 'pinyin', or 'translation'
 
 const currentWord = computed(() => {
     return props.wordsForSession[currentWordIndex.value];
@@ -26,16 +31,15 @@ const progress = computed(() => {
 });
 
 // Method to record study progress
-const recordWordStudy = async (wordId, correct) => { // <-- Made function async
+const recordWordStudy = async (wordId, correct) => {
     if (sessionComplete.value) return;
 
     try {
-        const response = await axios.post(route('words.recordStudy', wordId), { correct: correct }); // <-- Use axios.post
+        const response = await axios.post(route('words.recordStudy', wordId), { correct: correct });
         console.log(`Word ${wordId} marked as ${correct ? 'correct' : 'incorrect'}.`);
         console.log('History updated:', response.data.history);
 
         // Optional: Update the current word's history data in the local state
-        // This makes the 'Current Status' section update immediately
         if (currentWord.value) {
             currentWord.value.history = response.data.history;
         }
@@ -49,7 +53,7 @@ const recordWordStudy = async (wordId, correct) => { // <-- Made function async
 };
 
 const goToNextWord = () => {
-    showTranslation.value = false;
+    showAnswer.value = false; // Reset to hide answer for the next word
     if (currentWordIndex.value < props.wordsForSession.length - 1) {
         currentWordIndex.value++;
     } else {
@@ -59,7 +63,7 @@ const goToNextWord = () => {
 
 const resetSession = () => {
     currentWordIndex.value = 0;
-    showTranslation.value = false;
+    showAnswer.value = false; // Reset on session reset
     sessionComplete.value = false;
     router.reload();
 };
@@ -94,21 +98,58 @@ const resetSession = () => {
                     </div>
 
                     <div v-else>
+                        <div class="mb-6 bg-gray-100 p-4 rounded-lg shadow-inner text-left">
+                            <p class="font-medium text-gray-700 mb-2">Show first:</p>
+                            <div class="flex flex-wrap gap-4 justify-center">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" v-model="initialDisplayMode" value="chinese" class="form-radio text-indigo-600 h-4 w-4">
+                                    <span class="ml-2 text-gray-700 text-sm font-medium">Chinese</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" v-model="initialDisplayMode" value="pinyin" class="form-radio text-indigo-600 h-4 w-4">
+                                    <span class="ml-2 text-gray-700 text-sm font-medium">Pinyin</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" v-model="initialDisplayMode" value="translation" class="form-radio text-indigo-600 h-4 w-4">
+                                    <span class="ml-2 text-gray-700 text-sm font-medium">Translation</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
                             <div class="bg-indigo-600 h-2.5 rounded-full" :style="{ width: progress + '%' }"></div>
                         </div>
 
                         <div class="bg-gray-50 p-6 rounded-lg shadow-inner mb-6">
                             <p class="text-sm text-gray-500 mb-2">Word {{ currentWordIndex + 1 }} / {{ props.wordsForSession.length }}</p>
-                            <div class="text-5xl font-bold text-gray-800 mb-4">{{ currentWord.chinese_word }}</div>
-                            <div class="text-xl text-gray-600 mb-6">{{ currentWord.pinyin }}</div>
 
-                            <button @click="showTranslation = !showTranslation"
+                            <div class="min-h-[120px] flex flex-col justify-center items-center">
+                                <div v-if="!showAnswer">
+                                    <div v-if="initialDisplayMode === 'chinese'" class="text-5xl font-bold text-gray-800 mb-4">
+                                        {{ currentWord.chinese_word }}
+                                    </div>
+                                    <div v-else-if="initialDisplayMode === 'pinyin'" class="text-5xl font-bold text-gray-800 mb-4">
+                                        {{ currentWord.pinyin }}
+                                    </div>
+                                    <div v-else-if="initialDisplayMode === 'translation'" class="text-5xl font-bold text-gray-800 mb-4">
+                                        {{ currentWord.translation }}
+                                    </div>
+                                    <div v-else class="text-xl text-gray-600 mb-4">
+                                        Please select an initial display mode.
+                                    </div>
+                                </div>
+
+                                <div v-else class="w-full">
+                                    <div class="text-5xl font-bold text-gray-800 mb-2">{{ currentWord.chinese_word }}</div>
+                                    <div class="text-xl text-gray-600 mb-2">{{ currentWord.pinyin }}</div>
+                                    <div class="mt-4 text-2xl font-semibold text-indigo-700">{{ currentWord.translation }}</div>
+                                </div>
+                            </div>
+
+                            <button @click="showAnswer = !showAnswer"
                                     class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition ease-in-out duration-150 mb-4">
-                                {{ showTranslation ? 'Hide Translation' : 'Show Translation' }}
+                                {{ showAnswer ? 'Hide Answer' : 'Show Answer' }}
                             </button>
-
-                            <div v-if="showTranslation" class="mt-4 text-2xl font-semibold text-indigo-700">{{ currentWord.translation }}</div>
 
                             <div class="mt-6">
                                 <p class="text-sm text-gray-500 mb-2">Current Status:</p>
