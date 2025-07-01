@@ -8,7 +8,8 @@ defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     users: Object, // Paginated users data
     filters: Object, // Current filter values (search, role)
-    allRoles: Array,
+    allRoles: Array, // All available roles for filtering
+    activeUsersCount: Number,
 });
 
 const flash = computed(() => usePage().props.flash);
@@ -18,14 +19,16 @@ const form = ref({
     role: props.filters.role || '',
 });
 
+// Debounce for search input
+let searchTimeout = null;
 watch(() => form.value.search, (value) => {
-    let timeoutId;
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
         applyFilters();
     }, 300);
 });
 
+// Direct watch for role select
 watch(() => form.value.role, (value) => {
     applyFilters();
 });
@@ -57,7 +60,7 @@ const resetFilters = () => {
                 <div class="p-6 text-gray-900">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-semibold">User Management</h2>
-                        </div>
+                    </div>
 
                     <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center">
                         <div class="flex-grow w-full sm:w-auto">
@@ -111,6 +114,8 @@ const resetFilters = () => {
                                             Roles
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Words Registered </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Registered On
                                         </th>
                                         <th scope="col" class="relative px-6 py-3">
@@ -136,11 +141,13 @@ const resetFilters = () => {
                                             <span v-if="user.roles.length === 0" class="text-gray-400">None</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ user.words_count }} </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ user.created_at }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <Link :href="route('admin.users.edit', user.id)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
-                                            </td>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\UpdateUserLastSeen;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,10 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            UpdateUserLastSeen::class,
         ]);
 
         $middleware->alias([
-            'role' => EnsureUserHasRole::class, 
+            'role' => EnsureUserHasRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
