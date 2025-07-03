@@ -2,7 +2,7 @@
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import  Input  from '@/components/Input.vue';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -26,7 +26,7 @@ const submit = () => {
     <AuthBase title="Create an account" description="Enter your details below to create your account">
         <Head title="Register" />
 
-        <form @submit.prevent="submit" class="flex flex-col gap-6">
+        <form @submit.prevent="submit" class="flex flex-col gap-6 text-black">
             <div class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="name">Name</Label>
@@ -68,15 +68,15 @@ const submit = () => {
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
-                <Button type="submit" class="mt-2 w-full" tabindex="5" :disabled="form.processing">
+                <Button type="submit" class="mt-4 w-full bg-indigo-600 text-white hover:bg-indigo-700" tabindex="5" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Create account
                 </Button>
             </div>
 
-            <div class="text-center text-sm text-muted-foreground">
+            <div class="text-center text-sm text-gray-700">
                 Already have an account?
-                <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="6">Log in</TextLink>
+                <TextLink :href="route('login')" class="font-semibold text-indigo-600 hover:text-indigo-800" :tabindex="6">Log in</TextLink>
             </div>
         </form>
     </AuthBase>

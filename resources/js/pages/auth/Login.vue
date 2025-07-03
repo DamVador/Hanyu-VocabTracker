@@ -3,9 +3,9 @@ import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import Input  from '@/components/Input.vue';
 import { Label } from '@/components/ui/label';
-import AuthBase from '@/layouts/AuthLayout.vue';
+import AuthBase from '@/layouts/AuthLayout.vue'; // Renamed from GuestLayout to AuthLayout in previous steps
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 
@@ -35,8 +35,7 @@ const submit = () => {
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit" class="flex flex-col gap-6">
-            <div class="grid gap-6">
+        <form @submit.prevent="submit" class="flex flex-col gap-6 text-gray-800"> <div class="grid gap-6">
                 <div class="grid gap-2">
                     <Label for="email">Email address</Label>
                     <Input
@@ -55,7 +54,10 @@ const submit = () => {
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
                         <Label for="password">Password</Label>
-                        <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm" :tabindex="5">
+                        <TextLink
+                            v-if="canResetPassword"
+                            :href="route('password.request')"
+                            class="text-sm font-semibold text-indigo-600 hover:text-indigo-800" :tabindex="5">
                             Forgot password?
                         </TextLink>
                     </div>
@@ -78,15 +80,14 @@ const submit = () => {
                     </Label>
                 </div>
 
-                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
+                <Button type="submit" class="mt-4 w-full bg-indigo-600 text-white hover:bg-indigo-700" :tabindex="4" :disabled="form.processing">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Log in
                 </Button>
             </div>
 
-            <div class="text-center text-sm text-muted-foreground">
-                Don't have an account?
-                <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
+            <div class="text-center text-sm text-gray-700"> Don't have an account?
+                <TextLink :href="route('register')" class="font-semibold text-indigo-600 hover:text-indigo-800" :tabindex="5">Sign up</TextLink>
             </div>
         </form>
     </AuthBase>
