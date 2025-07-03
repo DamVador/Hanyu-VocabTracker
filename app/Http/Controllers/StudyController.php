@@ -102,6 +102,7 @@ class StudyController extends Controller
             $history->learning_status = 'Revise'; // Default status for new words
         }
 
+        // TODO - Rework this algo
         // --- SRS Logic (Simplified Anki-like algorithm) ---
         if ($isCorrect) {
             $history->consecutive_correct_revisions++;
@@ -128,7 +129,7 @@ class StudyController extends Controller
         } else { // User got it incorrect
             $history->consecutive_correct_revisions = 0; // Reset consecutive
             $history->total_incorrect_revisions++;
-            $history->revision_interval = 0; // Reset interval to 0 or 1 day for immediate re-review
+            $history->revision_interval = 1; // Reset interval to 0 or 1 day for immediate re-review
             $history->learning_status = 'Forgot';
         }
 

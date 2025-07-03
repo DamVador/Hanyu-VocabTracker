@@ -13,13 +13,12 @@ const props = defineProps({
 });
 
 const currentWordIndex = ref(0);
-// Renamed from showTranslation to showAnswer to be more generic as it will reveal all.
 const showAnswer = ref(false);
 const sessionComplete = ref(false);
+const initialDisplayMode = ref('pinyin');
 
-// New ref for user's initial display preference
-// Default to 'chinese' but user can change it
-const initialDisplayMode = ref('chinese'); // Can be 'chinese', 'pinyin', or 'translation'
+const hasAnswerBeenShown = ref(false);
+
 
 const currentWord = computed(() => {
     return props.wordsForSession[currentWordIndex.value];
@@ -33,13 +32,16 @@ const progress = computed(() => {
 // Method to record study progress
 const recordWordStudy = async (wordId, correct) => {
     if (sessionComplete.value) return;
+    if (!hasAnswerBeenShown.value) {
+        alert('Please reveal the answer before marking as Correct or Incorrect.');
+        return;
+    }
 
     try {
         const response = await axios.post(route('words.recordStudy', wordId), { correct: correct });
         console.log(`Word ${wordId} marked as ${correct ? 'correct' : 'incorrect'}.`);
         console.log('History updated:', response.data.history);
 
-        // Optional: Update the current word's history data in the local state
         if (currentWord.value) {
             currentWord.value.history = response.data.history;
         }
@@ -48,12 +50,13 @@ const recordWordStudy = async (wordId, correct) => {
     } catch (error) {
         console.error('Error recording study:', error);
         alert('Failed to record study progress.');
-        goToNextWord(); // Still move to next word to not block session
+        goToNextWord();
     }
 };
 
 const goToNextWord = () => {
-    showAnswer.value = false; // Reset to hide answer for the next word
+    showAnswer.value = false;
+    hasAnswerBeenShown.value = false;
     if (currentWordIndex.value < props.wordsForSession.length - 1) {
         currentWordIndex.value++;
     } else {
@@ -63,9 +66,17 @@ const goToNextWord = () => {
 
 const resetSession = () => {
     currentWordIndex.value = 0;
-    showAnswer.value = false; // Reset on session reset
+    showAnswer.value = false;
+    hasAnswerBeenShown.value = false;
     sessionComplete.value = false;
     router.reload();
+};
+
+const toggleShowAnswer = () => {
+    showAnswer.value = !showAnswer.value;
+    if (showAnswer.value) {
+        hasAnswerBeenShown.value = true;
+    }
 };
 </script>
 
@@ -89,10 +100,10 @@ const resetSession = () => {
                     <div v-else-if="sessionComplete">
                         <h3 class="text-xl font-bold text-green-700 mb-4">Session Complete! 🎉</h3>
                         <p class="text-gray-700 mb-4">You've reviewed all {{ props.wordsForSession.length }} words for this session.</p>
-                        <button @click="resetSession" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <button @click="resetSession" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             Restart Session
                         </button>
-                        <Link :href="route('study-sessions.index')" class="inline-flex items-center px-4 py-2 ml-4 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <Link :href="route('study-sessions.index')" class="inline-flex items-center px-3 py-2 ml-4 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             Back to Sessions
                         </Link>
                     </div>
@@ -146,7 +157,7 @@ const resetSession = () => {
                                 </div>
                             </div>
 
-                            <button @click="showAnswer = !showAnswer"
+                            <button @click="toggleShowAnswer()"
                                     class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition ease-in-out duration-150 mb-4">
                                 {{ showAnswer ? 'Hide Answer' : 'Show Answer' }}
                             </button>
@@ -159,17 +170,20 @@ const resetSession = () => {
                                         'text-red-600': currentWord.history?.learning_status === 'Forgot',
                                         'text-blue-600': currentWord.history?.learning_status === 'Revise' || !currentWord.history,
                                     }">{{ currentWord.history?.learning_status || 'New' }}</span>
-                                    <span v-if="currentWord.history?.next_revision"> | Next Review: {{ currentWord.history.next_revision }}</span>
                                 </p>
                             </div>
                         </div>
 
                         <div class="flex justify-center gap-4">
                             <button @click="recordWordStudy(currentWord.id, true)"
+                                    :disabled="!hasAnswerBeenShown"
+                                    :class="{ 'opacity-50 cursor-not-allowed': !hasAnswerBeenShown }"
                                     class="inline-flex items-center px-6 py-3 bg-green-600 border border-transparent rounded-md font-semibold text-base text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Correct
                             </button>
                             <button @click="recordWordStudy(currentWord.id, false)"
+                                    :disabled="!hasAnswerBeenShown"
+                                    :class="{ 'opacity-50 cursor-not-allowed': !hasAnswerBeenShown }"
                                     class="inline-flex items-center px-6 py-3 bg-red-600 border border-transparent rounded-md font-semibold text-base text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Incorrect
                             </button>
