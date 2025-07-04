@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import TextareaInput from '@/Components/TextareaInput.vue';
+import InputError from '@/components/InputError.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import TextInput from '@/components/TextInput.vue';
+import TextareaInput from '@/components/TextareaInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
@@ -48,19 +48,13 @@ watch(selectedWordIds, (newVal) => {
     form.word_ids = Array.from(newVal);
 }, { deep: true });
 
-
-// 4. `toggleWordSelection` method correctly mutates the Set
 const toggleWordSelection = (wordId) => {
     if (selectedWordIds.value.has(wordId)) {
         selectedWordIds.value.delete(wordId);
     } else {
         selectedWordIds.value.add(wordId);
     }
-    // The watcher above will now automatically pick up this change and update form.word_ids
 };
-
-// --- FIX END ---
-
 
 const submit = () => {
     if (props.isEdit) {

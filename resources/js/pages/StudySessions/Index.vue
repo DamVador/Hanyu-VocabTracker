@@ -2,8 +2,8 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import TextInput from '@/Components/TextInput.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/components/TextInput.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
