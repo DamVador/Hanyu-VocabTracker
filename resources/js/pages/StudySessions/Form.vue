@@ -3,16 +3,16 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import TextareaInput from '@/Components/TextareaInput.vue'; // Assuming you have this component
+import TextareaInput from '@/Components/TextareaInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
     studySession: {
         type: Object,
-        default: null, // Null for create mode
+        default: null,
     },
-    userWords: { // All words belonging to the current user
+    userWords: {
         type: Array,
         required: true,
     },
@@ -22,11 +22,13 @@ const props = defineProps({
     }
 });
 
+const initialSelectedWordIds = props.studySession?.words?.map(word => word.id) || [];
+const selectedWordIds = ref(new Set(initialSelectedWordIds));
+
 const form = useForm({
     name: props.studySession?.name || '',
     description: props.studySession?.description || '',
-    // Initialize word_ids with already attached words for edit mode
-    word_ids: props.studySession?.words?.map(word => word.id) || [],
+    word_ids: Array.from(selectedWordIds.value),
 });
 
 const searchTerm = ref('');
@@ -42,27 +44,23 @@ const filteredWords = computed(() => {
     );
 });
 
-// Use a Set for efficient tracking of selected word IDs
-const selectedWordIds = ref(new Set(form.word_ids));
-
-// Watch for changes in the form.word_ids (e.g., initial load in edit mode)
-watch(() => form.word_ids, (newVal) => {
-    selectedWordIds.value = new Set(newVal);
-}, { immediate: true });
-
-// Sync the form's word_ids with the selectedWordIds Set whenever it changes
 watch(selectedWordIds, (newVal) => {
     form.word_ids = Array.from(newVal);
 }, { deep: true });
 
 
+// 4. `toggleWordSelection` method correctly mutates the Set
 const toggleWordSelection = (wordId) => {
     if (selectedWordIds.value.has(wordId)) {
         selectedWordIds.value.delete(wordId);
     } else {
         selectedWordIds.value.add(wordId);
     }
+    // The watcher above will now automatically pick up this change and update form.word_ids
 };
+
+// --- FIX END ---
+
 
 const submit = () => {
     if (props.isEdit) {

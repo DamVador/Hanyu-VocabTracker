@@ -47,9 +47,8 @@ class StudySessionController extends Controller
      */
     public function create(Request $request)
     {
-        // Pass all user's words so they can be selected for the session
         $userWords = $request->user()->words()
-            ->select('id', 'chinese_word', 'pinyin', 'translation') // Optimize by selecting only necessary fields
+            ->select('id', 'chinese_word', 'pinyin', 'translation')
             ->orderBy('pinyin')
             ->get();
 
@@ -66,7 +65,7 @@ class StudySessionController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'word_ids' => 'nullable|array', // Array of word IDs to attach
+            'word_ids' => 'nullable|array',
             'word_ids.*' => 'exists:words,id', // Ensure each ID exists in the words table
         ]);
 
@@ -76,7 +75,6 @@ class StudySessionController extends Controller
         ]);
 
         if (isset($validated['word_ids'])) {
-            // Attach the words to the newly created session
             $studySession->words()->attach($validated['word_ids']);
         }
 
@@ -89,15 +87,12 @@ class StudySessionController extends Controller
      */
     public function edit(Request $request, StudySession $studySession)
     {
-        // Authorize: Ensure the authenticated user owns this session
         if ($studySession->user_id !== $request->user()->id) {
             abort(403);
         }
 
-        // Load words already attached to this session
         $studySession->load('words:id,chinese_word,pinyin,translation');
 
-        // Pass all user's words for selection, and mark which ones are already attached
         $userWords = $request->user()->words()
             ->select('id', 'chinese_word', 'pinyin', 'translation')
             ->orderBy('pinyin')
@@ -149,12 +144,11 @@ class StudySessionController extends Controller
      */
     public function destroy(Request $request, StudySession $studySession)
     {
-        // Authorize: Ensure the authenticated user owns this session
         if ($studySession->user_id !== $request->user()->id) {
             abort(403);
         }
 
-        $studySession->delete(); // This will also detach related words due to cascade delete
+        $studySession->delete();
 
         return redirect()->route('study-sessions.index')
                          ->with('success', 'Study session deleted successfully!');
