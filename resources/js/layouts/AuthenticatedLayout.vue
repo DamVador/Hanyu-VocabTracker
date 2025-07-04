@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Navbar from '@/Components/Navbar.vue';
-import FlashMessages from '@/Components/FlashMessages.vue';
+import Navbar from '@/components/Navbar.vue';
+import FlashMessages from '@/components/FlashMessages.vue';
 
 defineProps({
   title: String,
