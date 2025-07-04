@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // We still need Head for page title and Link if the logo is clickable
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 
 defineProps<{
     title?: string;

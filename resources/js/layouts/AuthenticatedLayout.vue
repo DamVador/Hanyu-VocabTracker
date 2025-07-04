@@ -1,7 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import Navbar from '@/Components/Navbar.vue';
 import FlashMessages from '@/Components/FlashMessages.vue';
-import { Head } from '@inertiajs/vue3';
 
 defineProps({
   title: String,

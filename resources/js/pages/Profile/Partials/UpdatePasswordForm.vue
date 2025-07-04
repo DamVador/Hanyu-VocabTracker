@@ -1,5 +1,5 @@
-<script setup>
-import { useForm, usePage } from '@inertiajs/vue3';
+<script setup lang="ts">
+import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const passwordInput = ref(null);

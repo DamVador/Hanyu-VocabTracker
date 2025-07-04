@@ -5,6 +5,6 @@
     </label>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineProps(['value']);
 </script>

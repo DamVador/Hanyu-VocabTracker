@@ -1,9 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import axios from 'axios';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 

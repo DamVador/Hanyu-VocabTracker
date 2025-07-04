@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage, router } from '@inertiajs/vue3';
-import { computed, watch, ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { watch, ref } from 'vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -12,7 +12,7 @@ const props = defineProps({
     activeUsersCount: Number,
 });
 
-const flash = computed(() => usePage().props.flash);
+// const flash = computed(() => usePage().props.flash);
 
 const form = ref({
     search: props.filters.search || '',
@@ -21,7 +21,7 @@ const form = ref({
 
 // Debounce for search input
 let searchTimeout = null;
-watch(() => form.value.search, (value) => {
+watch(() => form.value.search, () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         applyFilters();
@@ -29,7 +29,7 @@ watch(() => form.value.search, (value) => {
 });
 
 // Direct watch for role select
-watch(() => form.value.role, (value) => {
+watch(() => form.value.role, () => {
     applyFilters();
 });
 
@@ -135,7 +135,7 @@ const resetFilters = () => {
                                             {{ user.email }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <span v-for="(role, index) in user.roles" :key="role" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
+                                            <span v-for="(role) in user.roles" :key="role" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
                                                 {{ role }}
                                             </span>
                                             <span v-if="user.roles.length === 0" class="text-gray-400">None</span>
@@ -159,7 +159,6 @@ const resetFilters = () => {
                                     v-for="(link, index) in users.links"
                                     :key="index"
                                     :href="link.url || '#'"
-                                    v-html="link.label"
                                     class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
                                     :class="{
                                         'bg-indigo-600 text-white border-indigo-600': link.active,
@@ -168,7 +167,11 @@ const resetFilters = () => {
                                         'rounded-r-md': index === users.links.length - 1,
                                         'cursor-not-allowed opacity-50': !link.url
                                     }"
-                                />
+                                >
+                                    <span v-if="link.label.includes('Previous')">&laquo; Previous</span>
+                                    <span v-else-if="link.label.includes('Next')">Next &raquo;</span>
+                                    <span v-else>{{ link.label }}</span>
+                                </Link>
                             </nav>
                         </div>
 

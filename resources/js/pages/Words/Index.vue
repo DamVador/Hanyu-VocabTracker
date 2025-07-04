@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -17,7 +17,7 @@ const props = defineProps({
     allLearningStatuses: Array,
 });
 
-const flash = computed(() => usePage().props.flash);
+// const flash = computed(() => usePage().props.flash);
 
 const form = ref({
     search_pinyin: props.filters.search_pinyin || '',
@@ -72,14 +72,14 @@ const deleteWord = (wordId) => {
 
 watch(
     () => form.value.search_pinyin,
-    (value) => {
+    () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => applyFilters(), 300);
     }
 );
 watch(
     () => form.value.search_translation,
-    (value) => {
+    () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => applyFilters(), 300);
     }
@@ -274,7 +274,6 @@ watch(() => form.value.learning_statuses, applyFilters);
                                     v-for="(link, index) in words.links"
                                     :key="index"
                                     :href="link.url || '#'"
-                                    v-html="link.label"
                                     class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
                                     :class="{
                                         'bg-indigo-600 text-white border-indigo-600': link.active,
@@ -283,7 +282,11 @@ watch(() => form.value.learning_statuses, applyFilters);
                                         'rounded-r-md': index === words.links.length - 1,
                                         'cursor-not-allowed opacity-50': !link.url
                                     }"
-                                />
+                                >
+                                    <span v-if="link.label.includes('Previous')">&laquo; Previous</span>
+                                    <span v-else-if="link.label.includes('Next')">Next &raquo;</span>
+                                    <span v-else>{{ link.label }}</span>
+                                </Link>
                             </nav>
                         </div>
 

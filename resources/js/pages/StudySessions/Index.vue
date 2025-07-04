@@ -1,7 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 import TextInput from '@/Components/TextInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
@@ -12,7 +12,7 @@ const props = defineProps({
     filters: Object,
 });
 
-const flash = computed(() => usePage().props.flash);
+// const flash = computed(() => usePage().props.flash);
 
 const search = ref(props.filters.search || '');
 

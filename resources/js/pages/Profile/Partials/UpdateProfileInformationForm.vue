@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -13,13 +13,17 @@ const form = useForm({
 
 const verificationLinkSent = ref(false);
 
-const sendEmailVerification = () => {
-    form.post(route('verification.send'), {
-        onSuccess: () => (verificationLinkSent.value = true),
-    });
-};
+// Remove the unused sendEmailVerification function.
+// The Link component directly handles the POST request for email verification.
 
-const user = usePage().props.auth.user;
+// const sendEmailVerification = () => {
+//     form.post(route('verification.send'), {
+//         onSuccess: () => (verificationLinkSent.value = true),
+//     });
+// };
+
+const authUser = usePage().props.auth.user;
+
 </script>
 
 <template>
@@ -31,7 +35,7 @@ const user = usePage().props.auth.user;
             </p>
         </header>
 
-        <form @submit.prevent="form.patch(route('profile.update-information'))" class="mt-6 space-y-6">
+        <form @submit.prevent="form.patch(route('Profile.update-information'))" class="mt-6 space-y-6">
             <div>
                 <label for="name" class="block font-medium text-sm text-gray-700">Name</label>
                 <input
@@ -63,7 +67,7 @@ const user = usePage().props.auth.user;
                 </div>
             </div>
 
-            <div v-if="user.email_verified_at === null">
+            <div v-if="authUser.email_verified_at === null">
                 <p class="text-sm mt-2 text-gray-800">
                     Your email address is unverified.
                     <Link
@@ -71,6 +75,7 @@ const user = usePage().props.auth.user;
                         method="post"
                         as="button"
                         class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        @success="verificationLinkSent = true"
                     >
                         Click here to re-send the verification email.
                     </Link>

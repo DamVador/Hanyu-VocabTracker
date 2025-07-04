@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 // No need for onMounted if it's not being used for initial logic
 // import { onMounted } from 'vue';
 
