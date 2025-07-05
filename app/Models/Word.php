@@ -12,10 +12,11 @@ class Word extends Model
 
     protected $fillable = [
         'user_id',
-        'chinese_word', // Your new column
+        'chinese_word',
         'pinyin',
         'translation',
-        // 'notes', // Removed as per your clarification
+        // TODO - Add note to word
+        // 'notes',
     ];
 
     public function user()

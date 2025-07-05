@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth; // Import Auth facade
+use Illuminate\Support\Facades\Auth;
 
 class StoreWordRequest extends FormRequest
 {
@@ -31,8 +31,8 @@ class StoreWordRequest extends FormRequest
             // - Can be an array (e.g., from multi-select or tags input)
             // - If it's a single string with comma-separated values, you might need to process it in the controller
             //   For JSON column, it's best if it arrives as an array.
-            'tags' => ['nullable', 'array'], // Can be null, must be an array if provided
-            'tags.*' => ['string', 'max:50'], // Each item in the array must be a string, max 50 chars
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:50'],
         ];
     }
 

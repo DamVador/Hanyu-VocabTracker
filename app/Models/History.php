@@ -9,7 +9,7 @@ class History extends Model
 {
     use HasFactory;
 
-    protected $table = 'histories'; // Explicitly set table name if it's not plural of model name
+    protected $table = 'histories';
 
     protected $fillable = [
         'word_id',
