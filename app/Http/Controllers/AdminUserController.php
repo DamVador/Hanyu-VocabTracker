@@ -20,48 +20,40 @@ class AdminUserController extends Controller
 
         $query = User::query();
 
-        // Apply search filter
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
+                $q->where('username', 'like', '%' . $search . '%')
                   ->orWhere('email', 'like', '%' . $search . '%');
             });
         }
 
-        // Apply role filter (assuming you have a 'roles' relationship or a column)
-        // This example assumes you have a many-to-many 'roles' relationship setup
-        // If you're using a package like Spatie/Laravel-Permission, this might look slightly different
         if ($role) {
             $query->whereHas('roles', function ($q) use ($role) {
                 $q->where('name', $role);
             });
         }
 
-        // Add the count of words for each user
-        // Assuming your User model has a 'words' relationship (hasMany(Word::class))
-        $query->withCount('words'); // This will add a `words_count` attribute to each User model
+        $query->withCount('words'); 
 
         // You might want to order by something here, e.g., created_at or name
-        $users = $query->orderBy('name')->paginate(10); // Paginate the results
+        $users = $query->orderBy('username')->paginate(10);
 
-        // Map the users data for Inertia to pluck roles and format dates
         $users->through(fn ($user) => [
             'id' => $user->id,
-            'name' => $user->name,
+            'username' => $user->username,
+            'first_name' => $user->first_name,
+            'first_name' => $user->first_name,
+            'country' => $user->country,
+            'city' => $user->city,
+            'chinese_level' => $user->chinese_level,
+            'native_language' => $user->native_language,
             'email' => $user->email,
-            // Assuming your user model has a 'roles' relationship that you can pluck names from
             'roles' => $user->roles->pluck('name')->toArray(),
             'created_at' => $user->created_at->format('M d, Y'),
-            'words_count' => $user->words_count, // Include the new words_count
+            'words_count' => $user->words_count,
         ]);
 
-        // Get all distinct roles for the filter dropdown (if applicable)
-        // This assumes you have a Role model or a way to get distinct role names.
-        // If using Spatie/Laravel-Permission:
-        // $allRoles = \Spatie\Permission\Models\Role::pluck('name')->toArray();
-        // Otherwise, you might need to query your users or a dedicated roles table
-        $allRoles = ['admin', 'user']; // Placeholder: Replace with actual logic to fetch roles
-
+        $allRoles = ['admin', 'regular', 'premium'];
 
         return Inertia::render('Admin/User/Index', [
             'users' => $users,
@@ -84,13 +76,12 @@ class AdminUserController extends Controller
         ]);
 
         return Inertia::render('Admin/User/Edit', [
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+            'user' => $user->only([
+                'id', 'first_name', 'last_name', 'username', 'email', 'country', 'city',
+            ]) + [ // <--- Corrected: Removed ->toArray() here
                 'current_roles' => $user->roles->pluck('name')->toArray(),
             ],
-            'all_roles' => $allRoles,
+            'all_roles' => Role::all(['id', 'name']),
         ]);
     }
 
@@ -99,29 +90,34 @@ class AdminUserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
+        $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'roles' => 'nullable|array',
-            'roles.*' => 'string|exists:roles,name',
+            'country' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'roles' => ['array'],
+            'roles.*' => ['exists:roles,name'],
         ]);
 
-        $user->forceFill([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-        ])->save();
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'username' => $request->username,
+            'email' => $request->email,
+            'country' => $request->country,
+            'city' => $request->city,
+        ]);
 
-        if (isset($validated['roles'])) {
-            // Get the IDs of the roles based on their names
-            $selectedRoleIds = Role::whereIn('name', $validated['roles'])->pluck('id');
-            // Sync the user's roles: detach roles not in $selectedRoleIds, attach new ones
-            $user->roles()->sync($selectedRoleIds);
+        if ($request->has('roles')) {
+            $roleIds = Role::whereIn('name', $request->roles)->pluck('id')->toArray();
+            $user->roles()->sync($roleIds);
         } else {
             $user->roles()->detach();
         }
 
-        return redirect()->route('admin.users.index')
-                         ->with('success', 'User updated successfully!');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
     public function destroy(User $user)

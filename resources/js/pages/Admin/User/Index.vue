@@ -12,17 +12,17 @@ const props = defineProps({
     activeUsersCount: Number,
 });
 
-// const flash = computed(() => usePage().props.flash);
-
 const form = ref({
     search: props.filters.search || '',
     role: props.filters.role || '',
 });
 
 // Debounce for search input
-let searchTimeout = null;
+let searchTimeout: ReturnType<typeof setTimeout> | null = null; // Type hint for setTimeout
 watch(() => form.value.search, () => {
-    clearTimeout(searchTimeout);
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
     searchTimeout = setTimeout(() => {
         applyFilters();
     }, 300);
@@ -105,7 +105,13 @@ const resetFilters = () => {
                                             ID
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Name
+                                            Username
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            First Name
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Last Name
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Email
@@ -114,7 +120,14 @@ const resetFilters = () => {
                                             Roles
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Words Registered </th>
+                                            Country
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            City
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Words Registered
+                                        </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Registered On
                                         </th>
@@ -129,7 +142,13 @@ const resetFilters = () => {
                                             {{ user.id }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ user.name }}
+                                            {{ user.username }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ user.first_name }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ user.last_name }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ user.email }}
@@ -141,7 +160,14 @@ const resetFilters = () => {
                                             <span v-if="user.roles.length === 0" class="text-gray-400">None</span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ user.words_count }} </td>
+                                            {{ user.country }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ user.city }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ user.words_count }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ user.created_at }}
                                         </td>
@@ -170,8 +196,7 @@ const resetFilters = () => {
                                 >
                                     <span v-if="link.label.includes('Previous')">&laquo; Previous</span>
                                     <span v-else-if="link.label.includes('Next')">Next &raquo;</span>
-                                    <span v-else>{{ link.label }}</span>
-                                </Link>
+                                    <span v-else v-html="link.label"></span> </Link>
                             </nav>
                         </div>
 

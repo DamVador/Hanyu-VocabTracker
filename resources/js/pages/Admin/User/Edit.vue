@@ -5,19 +5,26 @@ import { Head, useForm } from '@inertiajs/vue3';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    user: Object,
-    all_roles: Array,
+    user: Object, // The user object being edited
+    all_roles: Array, // All available roles for checkboxes
 });
 
+// Initialize the form with existing user data, including new fields
+console.log(props.user)
 const form = useForm({
-    name: props.user.username,
+    first_name: props.user.first_name, // New field
+    last_name: props.user.last_name,   // New field
+    username: props.user.username,     // New field
     email: props.user.email,
-    roles: props.user.current_roles || [],
+    country: props.user.country,       // New field
+    city: props.user.city,       // New field
+    roles: props.user.current_roles || [], // Existing roles
 });
 
 const deleteForm = useForm({});
 
 const submit = () => {
+    // When submitting, all fields in 'form' will be sent to the backend
     form.patch(route('admin.users.update', props.user.id), {
         preserveScroll: true,
         onSuccess: () => {
@@ -45,27 +52,56 @@ const confirmAndDeleteUser = () => {
 </script>
 
 <template>
-    <Head :title="`Edit User: ${user.username}`" />
+    <Head :title="`Edit User: ${user.first_name} ${user.last_name}`" />
 
     <div class="py-12">
         <div class="max-w-md mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h2 class="text-2xl font-semibold mb-6">Edit User: {{ user.name }}</h2>
+                    <h2 class="text-2xl font-semibold mb-6">Edit User: {{ user.first_name }} {{ user.last_name }}</h2>
 
                     <form @submit.prevent="submit" class="space-y-6">
+
                         <div>
-                            <label for="name" class="block font-medium text-sm text-gray-700">Name</label>
+                            <label for="username" class="block font-medium text-sm text-gray-700">Username</label>
                             <input
-                                id="name"
-                                v-model="form.name"
+                                id="username"
+                                v-model="form.username"
                                 type="text"
                                 class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 required
                                 autofocus
                             />
-                            <div v-if="form.errors.name" class="text-red-600 text-sm mt-1">
-                                {{ form.errors.name }}
+                            <div v-if="form.errors.username" class="text-red-600 text-sm mt-1">
+                                {{ form.errors.username }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="first_name" class="block font-medium text-sm text-gray-700">First Name</label>
+                            <input
+                                id="first_name"
+                                v-model="form.first_name"
+                                type="text"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
+                            />
+                            <div v-if="form.errors.first_name" class="text-red-600 text-sm mt-1">
+                                {{ form.errors.first_name }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="last_name" class="block font-medium text-sm text-gray-700">Last Name</label>
+                            <input
+                                id="last_name"
+                                v-model="form.last_name"
+                                type="text"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
+                            />
+                            <div v-if="form.errors.last_name" class="text-red-600 text-sm mt-1">
+                                {{ form.errors.last_name }}
                             </div>
                         </div>
 
@@ -82,6 +118,35 @@ const confirmAndDeleteUser = () => {
                                 {{ form.errors.email }}
                             </div>
                         </div>
+
+                        <div>
+                            <label for="country" class="block font-medium text-sm text-gray-700">Country</label>
+                            <input
+                                id="country"
+                                v-model="form.country"
+                                type="text"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
+                            />
+                            <div v-if="form.errors.country" class="text-red-600 text-sm mt-1">
+                                {{ form.errors.country }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="city" class="block font-medium text-sm text-gray-700">City</label>
+                            <input
+                                id="city"
+                                v-model="form.city"
+                                type="text"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                required
+                            />
+                            <div v-if="form.errors.city" class="text-red-600 text-sm mt-1">
+                                {{ form.errors.city }}
+                            </div>
+                        </div>
+
 
                         <div>
                             <label class="block font-medium text-sm text-gray-700 mb-2">User Roles</label>
