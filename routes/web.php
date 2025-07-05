@@ -47,6 +47,10 @@ Route::middleware('auth')->group(function () {
     // Study Session Management Routes
     Route::resource('study-sessions', StudySessionController::class);
     Route::get('/study-sessions/{study_session}/review', [StudyController::class, 'sessionReview'])->name('study.sessionReview');
+    
+    // CSV Import/export Route
+    Route::post('/words/import-csv', [App\Http\Controllers\WordImportController::class, 'importCsv'])->name('words.importCsv');
+    Route::get('/study-sessions/{study_session}/export-csv', [StudySessionController::class, 'exportSingleCsv'])->name('study-sessions.exportSingleCsv');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {

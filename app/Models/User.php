@@ -18,8 +18,14 @@ class User extends Authenticatable //implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username',
+        'first_name',
+        'last_name',
         'email',
+        'country',
+        'city',
+        'native_language',
+        'chinese_level',
         'password',
         'last_seen_at',
     ];
@@ -58,7 +64,7 @@ class User extends Authenticatable //implements MustVerifyEmail
      */
     public function roles()
     {
-        return $this->belongsToMany(Role::class); // By default, Laravel looks for 'role_user' pivot table
+        return $this->belongsToMany(Role::class);
     }
 
     /**
@@ -69,12 +75,10 @@ class User extends Authenticatable //implements MustVerifyEmail
      */
     public function hasRole($role)
     {
-        // If a string is passed, convert to array for consistent logic
         if (is_string($role)) {
             return $this->roles->contains('name', $role);
         }
 
-        // If an array of role names is passed, check if user has any of them
         if (is_array($role)) {
             foreach ($role as $r) {
                 if ($this->hasRole($r)) {
@@ -127,6 +131,6 @@ class User extends Authenticatable //implements MustVerifyEmail
 
     public function studySessions()
     {
-        return $this->hasMany(StudySession::class); // Assuming you have a StudySession model
+        return $this->hasMany(StudySession::class);
     }
 }

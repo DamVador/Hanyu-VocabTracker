@@ -12,8 +12,6 @@ const props = defineProps({
     filters: Object,
 });
 
-// const flash = computed(() => usePage().props.flash);
-
 const search = ref(props.filters.search || '');
 
 watch(search, (value) => {
@@ -21,7 +19,7 @@ watch(search, (value) => {
         route('study-sessions.index'),
         { search: value },
         {
-            preserveState: true,  
+            preserveState: true,
             replace: true,
             preserveScroll: true,
         }
@@ -34,7 +32,7 @@ const clearSearch = () => {
 
 const deleteSession = (sessionId) => {
     if (confirm('Are you sure you want to delete this study session? All associated words will remain in your dictionary.')) {
-        router.delete(route('study-sessions.destroy', { study_session: sessionId }), { // Fix: Pass object
+        router.delete(route('study-sessions.destroy', { study_session: sessionId }), {
             onSuccess: () => {
                 // Success message will be shown via flash.success
             },
@@ -48,12 +46,16 @@ const deleteSession = (sessionId) => {
 const startSessionReview = (sessionId, mode) => {
     router.get(route('study.sessionReview', { study_session: sessionId, mode: mode }));
 };
+
+const exportSingleSessionToCsv = (sessionId) => {
+    window.location.href = route('study-sessions.exportSingleCsv', { study_session: sessionId });
+};
+
 </script>
 
 <template>
     <Head title="My Study Sessions" />
 
-    
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -62,9 +64,11 @@ const startSessionReview = (sessionId, mode) => {
                         <h2 class="font-semibold text-2xl text-gray-800 leading-tight">
                             My Study Sessions
                         </h2>
-                        <Link :href="route('study-sessions.create')">
-                            <PrimaryButton>Create New Study Session</PrimaryButton>
-                        </Link>
+                        <div class="flex gap-4">
+                            <Link :href="route('study-sessions.create')">
+                                <PrimaryButton>Create New Study Session</PrimaryButton>
+                            </Link>
+                        </div>
                     </div>
 
                         <div class="mb-6 flex items-center space-x-2">
@@ -103,6 +107,11 @@ const startSessionReview = (sessionId, mode) => {
                                             <Link :href="route('study-sessions.edit', { study_session: session.id })" class="text-indigo-600 hover:text-indigo-900 mr-2">Manage Words</Link>
                                             <button @click="startSessionReview(session.id, 'all')" class="cursor-pointer text-blue-600 hover:text-blue-900 mr-2" :disabled="session.words_count === 0">Study All</button>
                                             <button @click="startSessionReview(session.id, 'failed')" class="cursor-pointer text-red-600 hover:text-red-900 mr-2" :disabled="session.words_count === 0">Study Failed</button>
+                                            <button @click="exportSingleSessionToCsv(session.id)"
+                                                class="cursor-pointer text-purple-600 hover:text-purple-900 mr-2"
+                                                :disabled="session.words_count === 0">
+                                                Export
+                                            </button>
                                             <button @click="deleteSession(session.id)" class="cursor-pointer text-red-600 hover:text-red-900">Delete</button>
                                         </td>
                                     </tr>

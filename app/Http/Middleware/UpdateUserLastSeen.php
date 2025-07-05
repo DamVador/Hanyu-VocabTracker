@@ -17,8 +17,6 @@ class UpdateUserLastSeen
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
-            // Update last_seen_at for the authenticated user
-            // dd('Middleware is running for user: ' . Auth::user()->name);
             Auth::user()->update(['last_seen_at' => now()]);
         }
 

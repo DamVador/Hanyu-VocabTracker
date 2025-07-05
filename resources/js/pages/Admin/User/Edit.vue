@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-// No need for onMounted if it's not being used for initial logic
-// import { onMounted } from 'vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -11,15 +9,13 @@ const props = defineProps({
     all_roles: Array,
 });
 
-// Form for updating user details
 const form = useForm({
-    name: props.user.name,
+    name: props.user.username,
     email: props.user.email,
     roles: props.user.current_roles || [],
 });
 
-// Form for deleting the user
-const deleteForm = useForm({}); // Use a separate form for delete action
+const deleteForm = useForm({});
 
 const submit = () => {
     form.patch(route('admin.users.update', props.user.id), {
@@ -49,7 +45,7 @@ const confirmAndDeleteUser = () => {
 </script>
 
 <template>
-    <Head :title="`Edit User: ${user.name}`" />
+    <Head :title="`Edit User: ${user.username}`" />
 
     <div class="py-12">
         <div class="max-w-md mx-auto sm:px-6 lg:px-8">

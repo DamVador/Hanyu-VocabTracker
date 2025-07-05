@@ -6,6 +6,8 @@ use App\Models\StudySession;
 use App\Models\Word;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Str;
 
 class StudySessionController extends Controller
 {
@@ -152,5 +154,66 @@ class StudySessionController extends Controller
 
         return redirect()->route('study-sessions.index')
                          ->with('success', 'Study session deleted successfully!');
+    }
+
+    /**
+     * Helper method to generate CSV content and send it as a streamed response.
+     *
+     * @param  \Illuminate\Support\Collection  $sessions
+     * @param  string  $filename
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    private function generateCsvResponse($sessions, $filename): StreamedResponse
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($sessions) {
+            $file = fopen('php://output', 'w');
+
+            // Add UTF-8 BOM for Excel compatibility with Chinese characters
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Define the CSV header
+            fputcsv($file, ['chinese_character', 'pinyin', 'translation', 'study_session_name']);
+
+            foreach ($sessions as $session) {
+                $session->loadMissing('words');
+
+                foreach ($session->words as $word) {
+                    fputcsv($file, [
+                        $word->chinese_word,
+                        $word->pinyin,
+                        $word->translation,
+                        $session->name,
+                    ]);
+                }
+            }
+            fclose($file);
+        };
+
+        return response()->streamDownload($callback, $filename, $headers);
+    }
+
+    /**
+     * Export a single study session and its words to a CSV file.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\StudySession  $studySession
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function exportSingleCsv(Request $request, StudySession $studySession): StreamedResponse
+    {
+        if ($studySession->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $sessionsToExport = collect([$studySession]);
+
+        $filename = 'hanyu_vocab_export_' . Str::slug($studySession->name) . '_' . now()->format('Ymd_His') . '.csv';
+
+        return $this->generateCsvResponse($sessionsToExport, $filename);
     }
 }

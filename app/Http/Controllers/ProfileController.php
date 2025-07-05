@@ -18,8 +18,8 @@ class ProfileController extends Controller
     public function edit(Request $request)
     {
         return Inertia::render('Profile/Edit', [
-            'user' => $request->user()->only('name', 'email'),
-            'status' => session('status'), // For password update success messages
+            'user' => $request->user()->only('username', 'first_name', 'last_name', 'country', 'city', 'email', 'native_language', 'chinese_level'),
+            'status' => session('status'),
         ]);
     }
 
@@ -58,7 +58,7 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ])->save();
 
-        Auth::guard('web')->logout(); // Log user out after password change for security
+        Auth::guard('web')->logout();
 
         return redirect('/login')->with('status', 'Your password has been updated. Please log in again.');
     }
