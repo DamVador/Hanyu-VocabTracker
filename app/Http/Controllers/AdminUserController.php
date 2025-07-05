@@ -42,7 +42,7 @@ class AdminUserController extends Controller
             'id' => $user->id,
             'username' => $user->username,
             'first_name' => $user->first_name,
-            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
             'country' => $user->country,
             'city' => $user->city,
             'chinese_level' => $user->chinese_level,
