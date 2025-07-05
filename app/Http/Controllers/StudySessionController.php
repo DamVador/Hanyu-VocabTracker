@@ -68,7 +68,7 @@ class StudySessionController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'word_ids' => 'nullable|array',
-            'word_ids.*' => 'exists:words,id', // Ensure each ID exists in the words table
+            'word_ids.*' => 'exists:words,id',
         ]);
 
         $studySession = $request->user()->studySessions()->create([
@@ -100,7 +100,6 @@ class StudySessionController extends Controller
             ->orderBy('pinyin')
             ->get()
             ->map(function($word) use ($studySession) {
-                // Add a flag to indicate if the word is already attached to this session
                 $word->is_attached = $studySession->words->contains($word->id);
                 return $word;
             });
@@ -116,7 +115,6 @@ class StudySessionController extends Controller
      */
     public function update(Request $request, StudySession $studySession)
     {
-        // Authorize: Ensure the authenticated user owns this session
         if ($studySession->user_id !== $request->user()->id) {
             abort(403);
         }
@@ -133,8 +131,6 @@ class StudySessionController extends Controller
             'description' => $validated['description'],
         ]);
 
-        // Sync words: This method intelligently attaches/detaches words
-        // based on the provided array, ensuring only words in the array are attached.
         $studySession->words()->sync($validated['word_ids'] ?? []);
 
         return redirect()->route('study-sessions.index')

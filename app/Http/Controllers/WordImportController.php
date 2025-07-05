@@ -59,7 +59,6 @@ class WordImportController extends Controller
                     continue;
                 }
 
-                // Create or find the word
                 $word = Word::firstOrCreate(
                     [
                         'user_id' => auth()->id(),
@@ -69,7 +68,6 @@ class WordImportController extends Controller
                     ]
                 );
 
-                // Handle study session
                 if (!empty($rowData['study_session_name'])) {
                     $sessionName = trim($rowData['study_session_name']);
                     if (!empty($sessionName)) {

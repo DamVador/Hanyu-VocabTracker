@@ -150,22 +150,6 @@ class WordController extends Controller
 
     public function dashboardHome(Request $request)
     {
-        // $user = Auth::user();
-        // $totalWords = $user->words()->count();
-        // $recentWords = $user->words()->latest()->take(5)->get();
-
-        // // Placeholder for words due for review
-        // // TODO Review system
-        // // $wordsDueForReview = $user->words()->where('next_review_date', '<=', now())->count();
-        // $wordsDueForReview = 0; // Defaulting to 0 for now
-
-        // return Inertia::render('Dashboard', [
-        //     'totalWords' => $totalWords,
-        //     'recentWords' => $recentWords,
-        //     'wordsDueForReview' => $wordsDueForReview,
-        // ]);
-
-
             $user = $request->user();
     
             // 1. Words Added Statistics
@@ -243,14 +227,12 @@ class WordController extends Controller
                     if ($hasStudiedOnDay) {
                         $streak++;
                     } else {
-                        break; // Streak broken
+                        break;
                     }
                     $currentDay->subDay();
                 }
             }
     
-    
-            // Existing data from your dashboard
             $totalWords = Word::where('user_id', $user->id)->count();
     
             $wordsDueForReview = History::where('user_id', $user->id)
@@ -398,7 +380,6 @@ class WordController extends Controller
     public function destroy(Word $word)
     {
         if ($word->user_id !== auth()->id()) {
-            // && !auth()->user()->hasRole('admin')
             abort(403, 'Unauthorized action. You do not own this word.');
         }
 
@@ -460,10 +441,10 @@ class WordController extends Controller
                 $history->learning_status = 'Revise';
             }
 
-        } else { // User got it incorrect
-            $history->consecutive_correct_revisions = 0; // Reset consecutive
+        } else {
+            $history->consecutive_correct_revisions = 0;
             $history->total_incorrect_revisions++;
-            $history->revision_interval = 0; // Reset interval to 0 or 1 day for immediate re-review
+            $history->revision_interval = 0;
             $history->learning_status = 'Forgot';
         }
 
@@ -474,7 +455,7 @@ class WordController extends Controller
 
         return response()->json([
             'message' => 'Study record updated successfully!',
-            'history' => $history->toArray(), // Return the updated history data
+            'history' => $history->toArray(),
         ]);
     }
 }

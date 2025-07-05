@@ -76,30 +76,27 @@ class StudyController extends Controller
      */
     public function recordStudy(Request $request, Word $word)
     {
-        // Authorization check: Ensure the authenticated user owns this word
         if ($word->user_id !== auth()->id()) {
             abort(403, 'Unauthorized action. You do not own this word.');
         }
 
         $validated = $request->validate([
-            'correct' => 'required|boolean', // true if user got it right, false otherwise
+            'correct' => 'required|boolean',
         ]);
 
         $isCorrect = $validated['correct'];
         $user = $request->user();
 
-        // Find existing history record or create a new one
         $history = History::firstOrNew([
             'word_id' => $word->id,
             'user_id' => $user->id,
         ]);
 
-        // Initialize values if it's a new record
         if (!$history->exists) {
-            $history->revision_interval = 0; // Days
+            $history->revision_interval = 0;
             $history->consecutive_correct_revisions = 0;
             $history->total_incorrect_revisions = 0;
-            $history->learning_status = 'Revise'; // Default status for new words
+            $history->learning_status = 'Revise';
         }
 
         // TODO - Rework this algo
@@ -178,22 +175,21 @@ class StudyController extends Controller
      */
     public function sessionReview(Request $request, StudySession $studySession)
     {
-        // Authorization: Ensure the authenticated user owns this session
         if ($studySession->user_id !== $request->user()->id) {
             abort(403);
         }
 
-        $mode = $request->input('mode', 'all'); // Default to 'all' if not specified
+        $mode = $request->input('mode', 'all');
 
         $wordsQuery = $studySession->words()->with(['tags', 'histories' => function ($query) use ($request) {
-            $query->where('user_id', $request->user()->id); // Eager load user-specific history
+            $query->where('user_id', $request->user()->id);
         }]);
 
         if ($mode === 'failed') {
             $wordsQuery->whereHas('histories', function ($query) use ($request) {
                 $query->where('user_id', $request->user()->id)
-                      ->where('total_incorrect_revisions', '>', 0) // Words marked incorrect at least once
-                      ->where('learning_status', '!=', 'Mastered'); // Exclude if they somehow mastered it since
+                      ->where('total_incorrect_revisions', '>', 0)
+                      ->where('learning_status', '!=', 'Mastered');
             }, '>=', 1)
             ->orWhereDoesntHave('histories', function ($query) use ($request) {
                 $query->where('user_id', $request->user()->id);
@@ -226,7 +222,6 @@ class StudyController extends Controller
         $user = auth()->user(); // Assuming user is authenticated
 
         $transformedWords = $wordsForSession->map(function ($word) use ($user) {
-            // Eager load only the history record specific to this user for each word
             $history = $word->histories->firstWhere('user_id', $user->id);
 
             return [
@@ -235,7 +230,6 @@ class StudyController extends Controller
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
                 'tags' => $word->tags->pluck('name')->toArray(),
-                // Pass relevant history data (if it exists) for display on the study card
                 'history' => $history ? [
                     'last_revision' => $history->last_revision?->format('M d, Y H:i'),
                     'next_revision' => $history->next_revision?->format('M d, Y H:i'),
@@ -243,13 +237,12 @@ class StudyController extends Controller
                     'consecutive_correct_revisions' => $history->consecutive_correct_revisions,
                     'total_incorrect_revisions' => $history->total_incorrect_revisions,
                     'learning_status' => $history->learning_status,
-                ] : null, // Null if no history yet
+                ] : null,
             ];
         })->toArray();
 
-        return Inertia::render('Study/Index', [ // Reusing the existing Study/Index component
+        return Inertia::render('Study/Index', [
             'wordsForSession' => $transformedWords,
-            // We might not need 'allTags' for the study page directly, but keeping for now.
             // 'allTags' => Tag::pluck('name')->toArray(),
         ]);
     }

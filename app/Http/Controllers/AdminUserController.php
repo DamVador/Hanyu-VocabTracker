@@ -35,7 +35,6 @@ class AdminUserController extends Controller
 
         $query->withCount('words'); 
 
-        // You might want to order by something here, e.g., created_at or name
         $users = $query->orderBy('username')->paginate(10);
 
         $users->through(fn ($user) => [
@@ -61,7 +60,7 @@ class AdminUserController extends Controller
                 'search' => $search,
                 'role' => $role,
             ],
-            'allRoles' => $allRoles, // Ensure this is passed to the frontend
+            'allRoles' => $allRoles,
         ]);
     }
 
@@ -78,7 +77,7 @@ class AdminUserController extends Controller
         return Inertia::render('Admin/User/Edit', [
             'user' => $user->only([
                 'id', 'first_name', 'last_name', 'username', 'email', 'country', 'city',
-            ]) + [ // <--- Corrected: Removed ->toArray() here
+            ]) + [
                 'current_roles' => $user->roles->pluck('name')->toArray(),
             ],
             'all_roles' => Role::all(['id', 'name']),
