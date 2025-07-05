@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,10 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        // TODO - create an observer for users and register it in service provider app/Providers/AppServiceProvider.php
+        $regularRole = Role::firstOrCreate(['name' => 'regular']);
+        $user->roles()->attach($regularRole->id);
 
         event(new Registered($user));
 
