@@ -100,8 +100,9 @@ defineOptions({ layout: GuestLayout });
                         </div>
                         <div class="p-6 bg-white rounded-lg shadow-md border-t-4 border-red-500">
                             <div class="text-red-600 text-4xl mb-3">🧠</div>
-                            <h3 class="text-xl font-semibold mb-2">Intelligent Review</h3>
-                            <p class="text-gray-700">Spaced repetition helps you remember words efficiently, forever.
+                            <h3 class="text-xl font-semibold mb-2">Tailored Study Paths</h3>
+                            <p class="text-gray-700">
+                                Focus on challenging words or specific topics, creating study sessions just for you.
                             </p>
                         </div>
                     </div>
