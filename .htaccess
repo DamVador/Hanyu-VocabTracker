@@ -22,4 +22,10 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+
+    # Redirect to public folder on main domain
+    #RewriteCond %{HTTP_HOST} ^hanyu-vocabtracker.com$ [NC,OR]
+    #RewriteCond %{HTTP_HOST} ^www.hanyu-vocabtracker.com$
+    #RewriteCond %{REQUEST_URI} !public/
+    #RewriteRule (.*) /public/$1 [L]
 </IfModule>
