@@ -34,7 +34,7 @@ Route::middleware('auth')->group(function () {
         ->name('words.create');
     Route::post('/words', [WordController::class, 'save'])->name('words.save');
     Route::get('/words/{word}/edit', [WordController::class, 'edit'])->name('words.edit');
-    Route::patch('/words/{word}', [WordController::class, 'update'])->name('words.update');
+    Route::put('/words/{word}', [WordController::class, 'update'])->name('words.update');
     Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
 
     // This route is for recording study progress. It remains under words
