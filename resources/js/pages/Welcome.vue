@@ -55,9 +55,7 @@ defineOptions({ layout: GuestLayout });
                         Master Your Chinese Vocabulary.
                     </h1>
                     <p class="text-lg md:text-xl opacity-90 mb-8">
-                        Track and organize the Chinese words you're learning with custom tags. Your personal language
-                        learning
-                        companion, designed for efficiency.
+                        Easily track and categorize words for smarter learning.
                     </p>
 
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -83,7 +81,7 @@ defineOptions({ layout: GuestLayout });
                     <div class="grid sm:grid-cols-2 gap-8 mb-16">
                         <div class="p-6 bg-white rounded-lg shadow-md border-t-4 border-indigo-500">
                             <div class="text-indigo-600 text-4xl mb-3">📝</div>
-                            <h3 class="text-xl font-semibold mb-2">Effortless Tracking</h3>
+                            <h3 class="text-xl font-semibold mb-2">Word integration</h3>
                             <p class="text-gray-700">Quickly save new words with Chinese characters, Pinyin, and
                                 translations.
                             </p>
@@ -91,19 +89,19 @@ defineOptions({ layout: GuestLayout });
                         <div class="p-6 bg-white rounded-lg shadow-md border-t-4 border-purple-500">
                             <div class="text-purple-600 text-4xl mb-3">🏷️</div>
                             <h3 class="text-xl font-semibold mb-2">Smart Organization</h3>
-                            <p class="text-gray-700">Categorize words with custom tags for focused study sessions.</p>
-                        </div>
-                        <div class="p-6 bg-white rounded-lg shadow-md border-t-4 border-blue-500">
-                            <div class="text-blue-600 text-4xl mb-3">📱</div>
-                            <h3 class="text-xl font-semibold mb-2">Accessible Anywhere</h3>
-                            <p class="text-gray-700">Access your vocabulary list from any device, anytime.</p>
+                            <p class="text-gray-700">Categorize words with custom tags for efficient access.</p>
                         </div>
                         <div class="p-6 bg-white rounded-lg shadow-md border-t-4 border-red-500">
                             <div class="text-red-600 text-4xl mb-3">🧠</div>
                             <h3 class="text-xl font-semibold mb-2">Tailored Study Paths</h3>
                             <p class="text-gray-700">
-                                Focus on challenging words or specific topics, creating study sessions just for you.
+                                Create study sessions to test and reinforce your vocabulary knowledge.
                             </p>
+                        </div>
+                        <div class="p-6 bg-white rounded-lg shadow-md border-t-4 border-blue-500">
+                            <div class="text-blue-600 text-4xl mb-3">📱</div>
+                            <h3 class="text-xl font-semibold mb-2">Accessible Anywhere</h3>
+                            <p class="text-gray-700">Access your vocabulary list from any device, anytime.</p>
                         </div>
                     </div>
 
