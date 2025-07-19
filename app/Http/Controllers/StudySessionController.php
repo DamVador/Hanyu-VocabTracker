@@ -36,6 +36,8 @@ class StudySessionController extends Controller
             'created_at' => $session->created_at->format('M d, Y'),
         ]);
 
+        $studySessions = $query->paginate(10);
+
         return Inertia::render('StudySessions/Index', [
             'studySessions' => $studySessions,
             'filters' => [
