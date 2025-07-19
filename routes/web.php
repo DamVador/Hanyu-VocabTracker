@@ -7,7 +7,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\StudyController;
-use App\Http\Controllers\StudySessionController; 
+use App\Http\Controllers\StudySessionController;
+use App\Http\Controllers\ResourcesListController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -51,6 +52,8 @@ Route::middleware('auth')->group(function () {
     // CSV Import/export Route
     Route::post('/words/import-csv', [App\Http\Controllers\WordImportController::class, 'importCsv'])->name('words.importCsv');
     Route::get('/study-sessions/{study_session}/export-csv', [StudySessionController::class, 'exportSingleCsv'])->name('study-sessions.exportSingleCsv');
+
+    Route::get('/resources-lists', [ResourcesListController::class, 'index'])->name('resources.lists');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
