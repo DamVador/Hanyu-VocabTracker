@@ -5,26 +5,23 @@ import { Head, useForm } from '@inertiajs/vue3';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    user: Object, // The user object being edited
-    all_roles: Array, // All available roles for checkboxes
+    user: Object,
+    all_roles: Array,
 });
 
-// Initialize the form with existing user data, including new fields
-console.log(props.user)
 const form = useForm({
-    first_name: props.user.first_name, // New field
-    last_name: props.user.last_name,   // New field
-    username: props.user.username,     // New field
+    first_name: props.user.first_name,
+    last_name: props.user.last_name,
+    username: props.user.username,
     email: props.user.email,
-    country: props.user.country,       // New field
-    city: props.user.city,       // New field
-    roles: props.user.current_roles || [], // Existing roles
+    country: props.user.country,
+    city: props.user.city,
+    roles: props.user.current_roles || [],
 });
 
 const deleteForm = useForm({});
 
 const submit = () => {
-    // When submitting, all fields in 'form' will be sent to the backend
     form.patch(route('admin.users.update', props.user.id), {
         preserveScroll: true,
         onSuccess: () => {

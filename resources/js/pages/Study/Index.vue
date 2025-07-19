@@ -38,9 +38,6 @@ const recordWordStudy = async (wordId, correct) => {
 
     try {
         const response = await axios.post(route('words.recordStudy', wordId), { correct: correct });
-        console.log(`Word ${wordId} marked as ${correct ? 'correct' : 'incorrect'}.`);
-        console.log('History updated:', response.data.history);
-
         if (currentWord.value) {
             currentWord.value.history = response.data.history;
         }

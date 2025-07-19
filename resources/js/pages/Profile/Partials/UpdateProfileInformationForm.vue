@@ -6,7 +6,6 @@ const props = defineProps({
     user: Object, // User object from Profile/Edit.vue
 });
 
-console.log(props.user)
 const form = useForm({
     username: props.user.username,
     first_name: props.user.first_name,
