@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CsvImportRequest;
 use App\Models\Word;
 use App\Models\StudySession;
+use App\Models\Tag;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -17,18 +18,16 @@ class WordImportController extends Controller
         $path = $file->getRealPath();
         $data = array_map('str_getcsv', file($path));
 
-        // Assuming the first row is the header
-        $header = array_map('trim', array_shift($data)); // Trim whitespace from headers
+        $header = array_map('trim', array_shift($data));
 
-        // Define expected headers and their required status
         $expectedHeaders = [
             'chinese_character' => true,
             'pinyin' => true,
             'translation' => true,
-            'study_session_name' => false, // Study session name is optional for each word
+            'study_session_name' => false,
+            'tags' => false,
         ];
 
-        // Validate headers
         foreach ($expectedHeaders as $expectedHeader => $required) {
             if ($required && !in_array($expectedHeader, $header)) {
                 return Inertia::render('Dashboard', [
@@ -39,12 +38,13 @@ class WordImportController extends Controller
 
         $importedCount = 0;
         $errors = [];
+        $skippedRows = 0;
 
         DB::beginTransaction();
         try {
             foreach ($data as $rowNum => $row) {
-                // Skip empty rows
                 if (empty(array_filter($row))) {
+                    $skippedRows++;
                     continue;
                 }
 
@@ -53,9 +53,8 @@ class WordImportController extends Controller
                     $rowData[$colName] = $row[$index] ?? null;
                 }
 
-                // Basic validation for word data
                 if (empty($rowData['chinese_character']) || empty($rowData['pinyin']) || empty($rowData['translation'])) {
-                    $errors[] = "Row " . ($rowNum + 2) . ": Missing required word data (chinese_character, pinyin, or translation).";
+                    $errors[] = "Row " . ($rowNum + 2 - $skippedRows) . ": Missing required word data (chinese_character, pinyin, or translation).";
                     continue;
                 }
 
@@ -63,11 +62,20 @@ class WordImportController extends Controller
                     [
                         'user_id' => auth()->id(),
                         'chinese_word' => $rowData['chinese_character'],
+                    ],
+                    [
                         'pinyin' => $rowData['pinyin'],
                         'translation' => $rowData['translation'],
+                        // Add other default word properties here if needed for new creation
                     ]
                 );
+                if ($word->wasRecentlyCreated) {
+                    $word->pinyin = $rowData['pinyin'];
+                    $word->translation = $rowData['translation'];
+                    $word->save();
+                }
 
+                // --- Handle Study Session (existing logic) ---
                 if (!empty($rowData['study_session_name'])) {
                     $sessionName = trim($rowData['study_session_name']);
                     if (!empty($sessionName)) {
@@ -81,12 +89,28 @@ class WordImportController extends Controller
                             ]
                         );
 
-                        // Attach word to session if not already attached
-                        if (!$studySession->words->contains($word->id)) {
-                            $studySession->words()->attach($word->id);
-                        }
+                        $studySession->words()->syncWithoutDetaching($word->id);
                     }
                 }
+
+                if (!empty($rowData['tags'])) {
+                    $tagNames = explode(',', $rowData['tags']);
+                    $tagNames = array_map('trim', $tagNames);
+                    $tagNames = array_filter($tagNames);
+
+                    if (!empty($tagNames)) {
+                        $tagIds = [];
+                        foreach ($tagNames as $tagName) {
+                            $tag = Tag::firstOrCreate(
+                                ['name' => $tagName],
+                                ['user_id' => auth()->id()]
+                            );
+                            $tagIds[] = $tag->id;
+                        }
+                        $word->tags()->syncWithoutDetaching($tagIds);
+                    }
+                }
+
                 $importedCount++;
             }
 

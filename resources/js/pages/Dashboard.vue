@@ -181,7 +181,11 @@ const submitCsvImport = () => {
 
           <div class="border-t pt-6 mt-6 border-gray-200">
               <h4 class="text-lg font-medium text-gray-800 mb-3">Import Words from CSV</h4>
-              <p class="text-sm text-gray-600 mb-4">Upload a CSV file with columns: `chinese_character`, `pinyin`, `translation`, `study_session_name`.</p>
+              <p class="text-sm text-gray-600 mb-4">
+                Upload a CSV file with columns: `chinese_character`, `pinyin`, `translation`, `study_session_name`, `tags`.<br>
+                'study_session_name' is optionnal. <br>
+                'tags' is optionnal and can have several values seperated by a comma.
+              </p>
 
               <form @submit.prevent="submitCsvImport" class="flex flex-col sm:flex-row items-center gap-4">
                   <input
