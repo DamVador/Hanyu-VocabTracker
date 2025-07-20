@@ -5,7 +5,7 @@ import { Head, Link } from '@inertiajs/vue3';
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    resourcesList: Array,
+    resourcesLists: Array,
 });
 </script>
 
@@ -17,16 +17,15 @@ const props = defineProps({
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h2 class="font-semibold text-2xl text-gray-800 leading-tight mb-6">
-                        Download HSK Vocabulary Lists
+                        Download Vocabulary Lists
                     </h2>
 
                     <p class="mb-8 text-gray-700">
-                        Enhance your Chinese vocabulary by downloading various resources such as official HSK word lists. These CSV files can be easily
-                        imported into your dictionary using the "Import Words from CSV" feature on your Dashboard.
+                        Enhance your Chinese vocabulary by downloading various word lists. These CSV files are perfect for importing directly into your dictionary using the "Import Words from CSV" feature on your Dashboard, covering systems like HSK, TOCFL, and more.
                     </p>
 
-                    <div v-if="resourcesList && resourcesList.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div v-for="list in resourcesList" :key="list.name" class="bg-gray-50 p-6 rounded-lg shadow-sm">
+                    <div v-if="resourcesLists && resourcesLists.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div v-for="list in resourcesLists" :key="list.name" class="bg-gray-50 p-6 rounded-lg shadow-sm">
                             <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ list.name }}</h3>
                             <p class="text-gray-600 mb-4">{{ list.description }}</p>
                             <a :href="list.file_url" download
@@ -37,7 +36,7 @@ const props = defineProps({
                         </div>
                     </div>
                     <div v-else class="text-center text-gray-500 py-8">
-                        No resources available at the moment.
+                        No vocabulary lists available at the moment.
                     </div>
 
                     <div class="mt-8 text-center">

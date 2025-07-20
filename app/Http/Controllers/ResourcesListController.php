@@ -9,26 +9,37 @@ class ResourcesListController extends Controller
 {
     public function index()
     {
+        // TODO - Ajout d'une table ressources
         $resourcesLists = [
             [
-                'name' => 'HSK 1 Vocabulary',
+                'name' => 'HSK 1 Vocabulary (simplified Chinese)',
                 'description' => 'Contains 150 essential words for HSK Level 1.',
-                'file_url' => '/resources_files/HSK1_Vocabulary.csv',
+                'file_url' => 'https://hanyu-vocabtracker.com/n0c-storage/HanyuVocabTracker/Vocabulary%20list/HSK1_list.csv',
             ],
             [
-                'name' => 'HSK 2 Vocabulary (New Words)',
+                'name' => 'HSK 2 Vocabulary (simplified Chinese)',
                 'description' => 'New 150 words for HSK Level 2, building upon HSK 1.',
-                'file_url' => '/resources_files/HSK2_Vocabulary.csv',
+                'file_url' => 'https://hanyu-vocabtracker.com/n0c-storage/HanyuVocabTracker/Vocabulary%20list/HSK2_list.csv',
             ],
             [
-                'name' => 'HSK 3 Vocabulary (New Words)',
+                'name' => 'HSK 3 Vocabulary (simplified Chinese)',
                 'description' => 'New 300 words for HSK Level 3, building upon HSK 2.',
-                'file_url' => '/resources_files/HSK3_Vocabulary.csv',
+                'file_url' => 'https://hanyu-vocabtracker.com/n0c-storage/HanyuVocabTracker/Vocabulary%20list/HSK3_list.csv',
             ],
             [
-                'name' => 'TOCFL 1 Vocabulary',
-                'description' => 'List of words for TOCFL 1.',
-                'file_url' => '/resources_files/TOCFL1_Vocabulary.csv',
+                'name' => 'HSK 1 Vocabulary (traditional Chinese)',
+                'description' => 'Contains 150 essential words equivalent to HSK Level 1 in traditional Chinese.',
+                'file_url' => 'https://hanyu-vocabtracker.com/n0c-storage/HanyuVocabTracker/Vocabulary%20list/HSK1_trad_list.csv',
+            ],
+            [
+                'name' => 'HSK 2 Vocabulary (traditional Chinese)',
+                'description' => 'New 150 words equivalent to HSK Level 2 in traditonal Chinese.',
+                'file_url' => 'https://hanyu-vocabtracker.com/n0c-storage/HanyuVocabTracker/Vocabulary%20list/HSK2_trad_list.csv',
+            ],
+            [
+                'name' => 'HSK 3 Vocabulary (traditional Chinese)',
+                'description' => 'New 300 words equivalent to HSK Level 3 in traditional Chinese.',
+                'file_url' => 'https://hanyu-vocabtracker.com/n0c-storage/HanyuVocabTracker/Vocabulary%20list/HSK3_trad_list.csv',
             ],
         ];
 
@@ -37,7 +48,7 @@ class ResourcesListController extends Controller
         ]);
     }
 
-    // Vous n'aurez pas besoin d'une méthode 'download' ici si vous liez directement à des fichiers statiques.
-    // Si un jour vous voulez gérer les téléchargements via Laravel (par ex. pour des statistiques ou une authentification),
-    // vous pourrez ajouter une méthode 'download' dans ce contrôleur et une route correspondante.
+    // TODO
+    // Pour gérer les téléchargements via Laravel (par ex. pour des statistiques ou une authentification),
+    // Ajouter une méthode 'download' et une route correspondante.
 }

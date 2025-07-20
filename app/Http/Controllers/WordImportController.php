@@ -9,6 +9,7 @@ use App\Models\Tag;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Redirect;
 
 class WordImportController extends Controller
 {
@@ -115,17 +116,15 @@ class WordImportController extends Controller
             }
 
             DB::commit();
-            return Inertia::render('Dashboard', [
-                'status' => "Successfully imported {$importedCount} words. " . count($errors) . " errors encountered.",
-                'errors' => $errors,
-            ]);
-
+            $message = "Successfully imported {$importedCount} words.";
+            if (!empty($errors)) {
+                $message .= " " . count($errors) . " errors encountered: " . implode(', ', $errors);
+            }
+            return Redirect::route('dashboard')->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("CSV Import Error: " . $e->getMessage(), ['user_id' => auth()->id(), 'exception' => $e]);
-            return Inertia::render('Dashboard', [
-                'errors' => ['general' => 'An error occurred during import: ' . $e->getMessage()],
-            ])->toResponse($request)->setStatusCode(500);
+            return Redirect::route('dashboard')->with('error', 'An error occurred during import: ' . $e->getMessage());
         }
     }
 }
