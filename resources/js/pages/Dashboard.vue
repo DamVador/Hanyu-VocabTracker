@@ -96,6 +96,38 @@ const submitCsvImport = () => {
       </p>
     </div>
 
+    <div v-if="totalWords === 0" class="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 p-4 mb-6"
+      role="alert">
+      <div class="flex">
+        <div class="py-1"><svg class="fill-current h-6 w-6 text-indigo-500 mr-4" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20">
+            <path
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-11a1 1 0 112 0v4a1 1 0 11-2 0V7zm0 8a1 1 0 112 0 1 1 0 01-2 0z" />
+          </svg></div>
+        <div>
+          <p class="font-bold mb-4">Welcome to Hanyu VocabTracker!</p>
+          <p class="text-sm">It looks like you're new here. To start learning, you need to add some words to your
+            dictionary and create your first study session. <br>
+            You can also download some words from the available lists and import it using the import CSV option on the dashaboard.
+          </p>
+          <div class="mt-4 flex gap-4">
+            <Link :href="route('words.create')"
+              class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
+            Add Your First Word
+            </Link>
+            <Link :href="route('study-sessions.index')"
+              class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
+            Create Study Sessions
+            </Link>
+            <Link :href="route('resources.lists')"
+              class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-600 focus:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
+            Download Word Lists
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
       <div class="flex flex-col gap-6 lg:order-1">
