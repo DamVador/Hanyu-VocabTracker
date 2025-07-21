@@ -162,12 +162,12 @@ class WordController extends Controller
     
             // 2. Words Reviewed Statistics
             $wordsReviewedToday = History::where('user_id', $user->id)
-                                         ->whereDate('created_at', Carbon::today())
+                                         ->whereDate('last_revision', Carbon::today())
                                          ->distinct('word_id')
                                          ->count('word_id'); // Count distinct word IDs
     
             $wordsReviewedThisWeek = History::where('user_id', $user->id)
-                                            ->where('created_at', '>=', Carbon::now()->startOfWeek())
+                                            ->where('last_revision', '>=', Carbon::now()->startOfWeek())
                                             ->distinct('word_id')
                                             ->count('word_id'); // Count distinct word IDs
     
@@ -197,8 +197,8 @@ class WordController extends Controller
             $streak = 0;
             $today = Carbon::today();
             $lastStudyDate = History::where('user_id', $user->id)
-                                    ->latest('created_at')
-                                    ->value('created_at'); // Get the last study date
+                                    ->latest('last_revision')
+                                    ->value('last_revision');
     
             if ($lastStudyDate) {
                 $lastStudyDay = $lastStudyDate->startOfDay();
@@ -222,7 +222,7 @@ class WordController extends Controller
     
                 while ($currentDay->greaterThanOrEqualTo($user->created_at->startOfDay())) {
                     $hasStudiedOnDay = History::where('user_id', $user->id)
-                                              ->whereDate('created_at', $currentDay)
+                                              ->whereDate('last_revision', $currentDay)
                                               ->exists();
                     if ($hasStudiedOnDay) {
                         $streak++;
