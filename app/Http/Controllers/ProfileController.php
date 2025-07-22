@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\File;
 
 class ProfileController extends Controller
 {
@@ -17,8 +18,16 @@ class ProfileController extends Controller
      */
     public function edit(Request $request)
     {
+        $countriesJsonPath = base_path('resources/js/Data/countriesList.json');
+        $countriesData = [];
+
+        if (File::exists($countriesJsonPath)) {
+            $countriesData = json_decode(File::get($countriesJsonPath), true);
+        }
+
         return Inertia::render('Profile/Edit', [
             'user' => $request->user()->only('username', 'first_name', 'last_name', 'country', 'city', 'email', 'native_language', 'chinese_level'),
+            'countries' => $countriesData,
             'status' => session('status'),
         ]);
     }

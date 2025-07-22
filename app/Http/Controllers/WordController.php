@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB; // For subqueries
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Config; 
 
 class WordController extends Controller
 {
@@ -261,6 +262,9 @@ class WordController extends Controller
                 'wordsReviewedThisWeek' => $wordsReviewedThisWeek,
                 // 'averageSessionLength' => $averageSessionLength,
                 'currentStreak' => $streak,
+                'features' => [
+                    'vocabListsEnabled' => Config::get('app.features.vocab_lists_enabled'),
+                ],
             ]);
     }
 

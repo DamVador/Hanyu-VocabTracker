@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Link, useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
     user: Object, // User object from Profile/Edit.vue
+    countries: Array,
 });
 
 const form = useForm({
@@ -39,6 +40,25 @@ const chineseLevels = [
     'TOCFL 5',
     'TOCFL 6',
 ];
+
+const countrySearchTerm = ref(props.user.country ? props.countries.find(c => c.alpha2 === props.user.country)?.name : ''); // Input display value
+const showCountrySuggestions = ref(false);
+
+const filteredCountries = computed(() => {
+    if (!countrySearchTerm.value || !props.countries) {
+        return [];
+    }
+    const lowerCaseSearchTerm = countrySearchTerm.value.toLowerCase();
+    return props.countries.filter(country =>
+        country.name.toLowerCase().includes(lowerCaseSearchTerm)
+    ).slice(0, 8);
+});
+
+const selectCountry = (country) => {
+    countrySearchTerm.value = country.name;
+    form.country = country.alpha2;
+    showCountrySuggestions.value = false;
+};
 </script>
 
 <template>
@@ -91,14 +111,31 @@ const chineseLevels = [
                 </div>
             </div>
 
-            <div>
-                <label for="country" class="block font-medium text-sm text-gray-700">Country</label>
-                <input id="country" type="text"
+            <div class="relative">
+                <label for="country_search" class="block font-medium text-sm text-gray-700">Country</label>
+                <input
+                    id="country_search"
+                    type="text"
+                    v-model="countrySearchTerm"
+                    @focus="showCountrySuggestions = true"
+                    @blur="() => { setTimeout(() => showCountrySuggestions = false, 150) }"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.country" autocomplete="country-name" />
-                <div v-if="form.errors.country" class="text-red-600 text-sm mt-1">
-                    {{ form.errors.country }}
-                </div>
+                    autocomplete="off"
+                />
+                <InputError class="mt-2" :message="form.errors.country" />
+
+                <ul
+                    v-if="showCountrySuggestions && filteredCountries.length"
+                    class="text-gray-900 absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                >
+                    <li
+                        v-for="country in filteredCountries"
+                        :key="country.alpha2"
+                        @mousedown.prevent="selectCountry(country)" class="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                    >
+                        {{ country.name }} {{ country.emoji }}
+                    </li>
+                </ul>
             </div>
 
             <div>

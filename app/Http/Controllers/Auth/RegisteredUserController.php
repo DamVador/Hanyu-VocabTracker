@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\File;
 
 class RegisteredUserController extends Controller
 {
@@ -21,7 +22,16 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/Register');
+        $countriesJsonPath = base_path('resources/js/Data/countriesList.json');
+        $countriesData = [];
+
+        if (File::exists($countriesJsonPath)) {
+            $countriesData = json_decode(File::get($countriesJsonPath), true);
+        }
+
+        return Inertia::render('auth/Register', [
+            'countries' => $countriesData,
+        ]);
     }
 
     /**
@@ -33,10 +43,10 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'username' => ['required', 'string', 'max:255', 'unique:users'],
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'country' => ['required', 'string', 'max:255'],
+            'country' => ['required', 'string', 'max:2'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
