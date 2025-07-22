@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'features' => [
+        'vocab_lists_enabled' => env('FEATURE_VOCAB_LISTS_ENABLED', false),
+    ],
 ];
