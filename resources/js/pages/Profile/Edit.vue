@@ -11,6 +11,7 @@ defineOptions({ layout: AuthenticatedLayout });
 defineProps({
     user: Object,
     status: String,
+    countries: Array,
 });
 
 const selectedTab = ref('profile-information');
@@ -63,7 +64,7 @@ const selectedTab = ref('profile-information');
 
                 <div class="p-4 sm:p-8">
                     <div v-if="selectedTab === 'profile-information'">
-                        <UpdateProfileInformationForm :user="user" class="max-w-xl" />
+                        <UpdateProfileInformationForm :user="user" :countries="countries" class="max-w-xl" />
                     </div>
 
                     <div v-if="selectedTab === 'update-password'">
