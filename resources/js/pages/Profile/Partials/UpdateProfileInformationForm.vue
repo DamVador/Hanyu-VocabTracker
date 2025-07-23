@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import InputError from '@/components/InputError.vue';
 
 const props = defineProps({
     user: Object, // User object from Profile/Edit.vue
@@ -53,6 +54,12 @@ const filteredCountries = computed(() => {
         country.name.toLowerCase().includes(lowerCaseSearchTerm)
     ).slice(0, 8);
 });
+
+const handleCountryInputBlur = () => {
+    setTimeout(() => {
+        showCountrySuggestions.value = false;
+    }, 150);
+};
 
 const selectCountry = (country) => {
     countrySearchTerm.value = country.name;
@@ -113,26 +120,16 @@ const selectCountry = (country) => {
 
             <div class="relative">
                 <label for="country_search" class="block font-medium text-sm text-gray-700">Country</label>
-                <input
-                    id="country_search"
-                    type="text"
-                    v-model="countrySearchTerm"
-                    @focus="showCountrySuggestions = true"
-                    @blur="() => { setTimeout(() => showCountrySuggestions = false, 150) }"
+                <input id="country_search" type="text" v-model="countrySearchTerm"
+                    @focus="showCountrySuggestions = true" @blur="handleCountryInputBlur"
                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    autocomplete="off"
-                />
+                    autocomplete="off" />
                 <InputError class="mt-2" :message="form.errors.country" />
 
-                <ul
-                    v-if="showCountrySuggestions && filteredCountries.length"
-                    class="text-gray-900 absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
-                >
-                    <li
-                        v-for="country in filteredCountries"
-                        :key="country.alpha2"
-                        @mousedown.prevent="selectCountry(country)" class="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                    >
+                <ul v-if="showCountrySuggestions && filteredCountries.length"
+                    class="text-gray-900 absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1">
+                    <li v-for="country in filteredCountries" :key="country.alpha2"
+                        @mousedown.prevent="selectCountry(country)" class="px-4 py-2 cursor-pointer hover:bg-gray-100">
                         {{ country.name }} {{ country.emoji }}
                     </li>
                 </ul>
