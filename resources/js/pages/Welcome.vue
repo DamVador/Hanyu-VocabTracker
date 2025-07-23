@@ -20,14 +20,15 @@ defineOptions({ layout: GuestLayout });
 
     <Head title="Welcome to HanyuVocabTracker" />
 
-    <div class="relative min-h-screen bg-white sm:flex sm:justify-center sm:items-center selection:bg-indigo-500 selection:text-white">
+    <div
+        class="relative min-h-screen bg-white sm:flex sm:justify-center sm:items-center selection:bg-indigo-500 selection:text-white">
 
-        <header class="absolute top-0 left-0 right-0 p-6 z-10 flex justify-between items-center">
+        <header class="absolute top-0 left-0 right-0 p-2 md:p-6 z-10 flex justify-between items-center">
             <div class="flex items-center">
                 <img src="/logo_HanyuVocabTrackerWhite.png" alt="Hanyu VocabTracker Logo" class="h-16 w-auto mr-3">
             </div>
 
-            <nav class="flex items-center space-x-4">
+            <nav class="flex items-center space-x-0 md:space-x-4">
                 <Link v-if="user" :href="route('dashboard')"
                     class="font-semibold text-gray-800 hover:text-gray-600 focus:outline focus:outline-2 focus:rounded-sm focus:outline-indigo-500">
                 Dashboard
@@ -40,7 +41,7 @@ defineOptions({ layout: GuestLayout });
                     </Link>
 
                     <Link v-if="canRegister" :href="route('register')"
-                        class="ms-4 px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 focus:outline focus:outline-2 focus:rounded-sm focus:outline-indigo-500 transition ease-in-out duration-150">
+                        class="ms-4 px-2 sm:px-4 py-2 bg-indigo-600 text-white rounded-md font-semibold hover:bg-indigo-700 focus:outline focus:outline-2 focus:rounded-sm focus:outline-indigo-500 transition ease-in-out duration-150">
                     Register
                     </Link>
                 </template>
