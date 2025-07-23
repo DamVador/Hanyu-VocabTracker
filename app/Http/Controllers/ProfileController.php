@@ -18,7 +18,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request)
     {
-        $countriesJsonPath = base_path('resources/js/Data/countriesList.json');
+        $countriesJsonPath = base_path('resources/js/data/countriesList.json');
         $countriesData = [];
 
         if (File::exists($countriesJsonPath)) {
