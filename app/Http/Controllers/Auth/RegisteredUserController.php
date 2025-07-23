@@ -22,7 +22,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        $countriesJsonPath = base_path('resources/js/Data/countriesList.json');
+        $countriesJsonPath = base_path('resources/js/data/countriesList.json');
         $countriesData = [];
 
         if (File::exists($countriesJsonPath)) {
