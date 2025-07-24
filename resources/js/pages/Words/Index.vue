@@ -253,25 +253,9 @@ watch(() => form.value.learning_statuses, applyFilters);
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
 
-                    <div class="py-12">
-                        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-black">
-                                <div v-if="words && words.data.length > 0">
-                                    <Pagination :pagination="words" :current-filters="form" />
-                                </div>
-                                <div v-else class="text-center text-gray-500 py-8">
-                                    No words found matching your criteria.
-                                    <p class="mt-2">Try adjusting your filters or
-                                        <Link :href="route('words.create')" class="text-indigo-600 hover:underline">add
-                                        a new word</Link>.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-
+                    <Pagination :pagination="words" :current-filters="form" />
                 </div>
                 <div v-else class="text-center text-gray-500 py-8">
                     No words found matching your criteria.
