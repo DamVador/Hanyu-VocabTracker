@@ -2,7 +2,7 @@
 import InputError from '@/components/InputError.vue';
 import InputLabel from '@/components/InputLabel.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
-import TextInput from '@/components/TextInput.vue';
+import Input from '@/components/Input.vue';
 import TextareaInput from '@/components/TextareaInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
@@ -83,7 +83,7 @@ const submit = () => {
     <form @submit.prevent="submit" class="p-6 text-black">
         <div>
             <InputLabel for="name" value="Session Name" />
-            <TextInput
+            <Input
                 id="name"
                 type="text"
                 class="mt-1 block w-full"
@@ -110,7 +110,7 @@ const submit = () => {
             <p class="text-sm text-gray-600 mb-2">Select words from your dictionary to add to this session.</p>
 
             <div class="mb-4">
-                <TextInput
+                <Input
                     type="text"
                     placeholder="Search words..."
                     v-model="searchTerm"

@@ -2,6 +2,8 @@
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import InputError from '@/components/InputError.vue';
+import Input from '@/components/Input.vue';
+import Select from '@/components/Select.vue';
 
 const props = defineProps({
     user: Object, // User object from Profile/Edit.vue
@@ -41,7 +43,7 @@ const chineseLevels = [
     'TOCFL 5',
     'TOCFL 6',
 ];
-
+const formattedChineseLevels = chineseLevels.map(level => ({ value: level, label: level }));
 const countrySearchTerm = ref(props.user.country ? props.countries.find(c => c.alpha2 === props.user.country)?.name : ''); // Input display value
 const showCountrySuggestions = ref(false);
 
@@ -80,9 +82,8 @@ const selectCountry = (country) => {
         <form @submit.prevent="form.patch(route('Profile.update-information'))" class="mt-6 space-y-6">
             <div>
                 <label for="username" class="block font-medium text-sm text-gray-700">Username</label>
-                <input id="username" type="text"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.username" required autofocus autocomplete="username" />
+                <Input id="username" type="text" required autofocus :tabindex="1" autocomplete="username"
+                    v-model="form.username" placeholder="Your username" />
                 <div v-if="form.errors.username" class="text-red-600 text-sm mt-1">
                     {{ form.errors.username }}
                 </div>
@@ -90,9 +91,8 @@ const selectCountry = (country) => {
 
             <div>
                 <label for="first_name" class="block font-medium text-sm text-gray-700">First Name</label>
-                <input id="first_name" type="text"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.first_name" required autocomplete="given-name" />
+                <Input id="first_name" type="text" required autofocus :tabindex="2" autocomplete="given-name"
+                    v-model="form.first_name" placeholder="Your first name" />
                 <div v-if="form.errors.first_name" class="text-red-600 text-sm mt-1">
                     {{ form.errors.first_name }}
                 </div>
@@ -100,9 +100,8 @@ const selectCountry = (country) => {
 
             <div>
                 <label for="last_name" class="block font-medium text-sm text-gray-700">Last Name</label>
-                <input id="last_name" type="text"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.last_name" autocomplete="family-name" />
+                <Input id="last_name" type="text" required autofocus :tabindex="3" autocomplete="family-name"
+                    v-model="form.last_name" placeholder="Your last name" />
                 <div v-if="form.errors.last_name" class="text-red-600 text-sm mt-1">
                     {{ form.errors.last_name }}
                 </div>
@@ -110,9 +109,8 @@ const selectCountry = (country) => {
 
             <div>
                 <label for="email" class="block font-medium text-sm text-gray-700">Email</label>
-                <input id="email" type="email"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.email" required autocomplete="email" />
+                <Input id="email" type="text" required autofocus :tabindex="3" autocomplete="email" v-model="form.email"
+                    placeholder="Your email" />
                 <div v-if="form.errors.email" class="text-red-600 text-sm mt-1">
                     {{ form.errors.email }}
                 </div>
@@ -120,10 +118,9 @@ const selectCountry = (country) => {
 
             <div class="relative">
                 <label for="country_search" class="block font-medium text-sm text-gray-700">Country</label>
-                <input id="country_search" type="text" v-model="countrySearchTerm"
-                    @focus="showCountrySuggestions = true" @blur="handleCountryInputBlur"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    autocomplete="off" />
+                <Input id="country_search" type="text" required autofocus :tabindex="4" autocomplete="off"
+                    @focus="showCountrySuggestions = true" @blur="handleCountryInputBlur" v-model="countrySearchTerm"
+                    placeholder="Your country" />
                 <InputError class="mt-2" :message="form.errors.country" />
 
                 <ul v-if="showCountrySuggestions && filteredCountries.length"
@@ -137,9 +134,8 @@ const selectCountry = (country) => {
 
             <div>
                 <label for="city" class="block font-medium text-sm text-gray-700">City</label>
-                <input id="city" type="text"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.city" autocomplete="address-level2" />
+                <Input id="city" type="text" required autofocus :tabindex="5" autocomplete="address-level2"
+                    v-model="form.city" placeholder="Your city" />
                 <div v-if="form.errors.city" class="text-red-600 text-sm mt-1">
                     {{ form.errors.city }}
                 </div>
@@ -147,9 +143,8 @@ const selectCountry = (country) => {
 
             <div>
                 <label for="native_language" class="block font-medium text-sm text-gray-700">Native Language</label>
-                <input id="native_language" type="text"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.native_language" autocomplete="language" />
+                <Input id="native_language" type="text" required autofocus :tabindex="5" autocomplete="language"
+                    v-model="form.native_language" placeholder="Your language" />
                 <div v-if="form.errors.native_language" class="text-red-600 text-sm mt-1">
                     {{ form.errors.native_language }}
                 </div>
@@ -157,12 +152,13 @@ const selectCountry = (country) => {
 
             <div>
                 <label for="chinese_level" class="block font-medium text-sm text-gray-700">Chinese Level</label>
-                <select id="chinese_level"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
-                    v-model="form.chinese_level">
-                    <option value="">Select your level</option>
-                    <option v-for="level in chineseLevels" :key="level" :value="level">{{ level }}</option>
-                </select>
+                <Select
+                id="chinese_level"
+                v-model="form.chinese_level"
+                :options="formattedChineseLevels"
+                placeholder="Select your level"
+                class="mt-1 block"
+            />
                 <div v-if="form.errors.chinese_level" class="text-red-600 text-sm mt-1">
                     {{ form.errors.chinese_level }}
                 </div>

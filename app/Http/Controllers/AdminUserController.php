@@ -7,6 +7,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\File;
 
 class AdminUserController extends Controller
 {
@@ -73,6 +74,12 @@ class AdminUserController extends Controller
             'id' => $role->id,
             'name' => $role->name,
         ]);
+        $countriesData = [];
+        $countriesJsonPath = base_path('resources/js/data/countriesList.json');
+
+        if (File::exists($countriesJsonPath)) {
+            $countriesData = json_decode(File::get($countriesJsonPath), true);
+        }
 
         return Inertia::render('Admin/User/Edit', [
             'user' => $user->only([
@@ -81,6 +88,7 @@ class AdminUserController extends Controller
                 'current_roles' => $user->roles->pluck('name')->toArray(),
             ],
             'all_roles' => Role::all(['id', 'name']),
+            'countries' => $countriesData,
         ]);
     }
 
@@ -94,7 +102,7 @@ class AdminUserController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'country' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:2'],
             'city' => ['nullable', 'string', 'max:255'],
             'roles' => ['array'],
             'roles.*' => ['exists:roles,name'],
