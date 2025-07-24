@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import Input from '@/components/Input.vue';
+import { ref, computed } from 'vue'; // Importez ref et computed
+import Select from '@/components/Select.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
     user: Object,
     all_roles: Array,
+    countries: Array,
 });
 
 const form = useForm({
@@ -46,28 +50,54 @@ const confirmAndDeleteUser = () => {
         });
     }
 };
+
+const countrySearchTerm = ref(props.user.country ? props.countries.find(c => c.alpha2 === props.user.country)?.name : ''); // Valeur d'affichage dans l'input
+const showCountrySuggestions = ref(false);
+
+const filteredCountries = computed(() => {
+    if (!countrySearchTerm.value || !props.countries) {
+        return [];
+    }
+    const lowerCaseSearchTerm = countrySearchTerm.value.toLowerCase();
+    return props.countries.filter(country =>
+        country.name.toLowerCase().includes(lowerCaseSearchTerm)
+    ).slice(0, 8); // Limitez les suggestions pour la performance
+});
+
+const handleCountryInputBlur = () => {
+    setTimeout(() => {
+        showCountrySuggestions.value = false;
+    }, 150);
+};
+
+const selectCountry = (country) => {
+    countrySearchTerm.value = country.name;
+    form.country = country.alpha2;
+    showCountrySuggestions.value = false;
+};
 </script>
 
 <template>
-    <Head :title="`Edit User: ${user.first_name} ${user.last_name}`" />
+    <Head :title="`Edit User: ${user.username}`" />
 
     <div class="py-12">
         <div class="max-w-md mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h2 class="text-2xl font-semibold mb-6">Edit User: {{ user.first_name }} {{ user.last_name }}</h2>
+                    <h2 class="text-2xl font-semibold mb-6">Edit User: {{ user.username }}</h2>
 
                     <form @submit.prevent="submit" class="space-y-6">
 
                         <div>
                             <label for="username" class="block font-medium text-sm text-gray-700">Username</label>
-                            <input
+                            <Input
                                 id="username"
                                 v-model="form.username"
                                 type="text"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1"
                                 required
                                 autofocus
+                                autocomplete="username"
                             />
                             <div v-if="form.errors.username" class="text-red-600 text-sm mt-1">
                                 {{ form.errors.username }}
@@ -76,11 +106,11 @@ const confirmAndDeleteUser = () => {
 
                         <div>
                             <label for="first_name" class="block font-medium text-sm text-gray-700">First Name</label>
-                            <input
+                            <Input
                                 id="first_name"
                                 v-model="form.first_name"
                                 type="text"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1"
                                 required
                             />
                             <div v-if="form.errors.first_name" class="text-red-600 text-sm mt-1">
@@ -90,11 +120,11 @@ const confirmAndDeleteUser = () => {
 
                         <div>
                             <label for="last_name" class="block font-medium text-sm text-gray-700">Last Name</label>
-                            <input
+                            <Input
                                 id="last_name"
                                 v-model="form.last_name"
                                 type="text"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1"
                                 required
                             />
                             <div v-if="form.errors.last_name" class="text-red-600 text-sm mt-1">
@@ -104,11 +134,11 @@ const confirmAndDeleteUser = () => {
 
                         <div>
                             <label for="email" class="block font-medium text-sm text-gray-700">Email</label>
-                            <input
+                            <Input
                                 id="email"
                                 v-model="form.email"
                                 type="email"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1"
                                 required
                             />
                             <div v-if="form.errors.email" class="text-red-600 text-sm mt-1">
@@ -116,27 +146,41 @@ const confirmAndDeleteUser = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <label for="country" class="block font-medium text-sm text-gray-700">Country</label>
-                            <input
-                                id="country"
-                                v-model="form.country"
+                        <div class="relative">
+                            <label for="country_search" class="block font-medium text-sm text-gray-700">Country</label>
+                            <Input
+                                id="country_search"
                                 type="text"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                required
+                                v-model="countrySearchTerm"
+                                @focus="showCountrySuggestions = true"
+                                @blur="handleCountryInputBlur"
+                                class="mt-1"
+                                autocomplete="off"
                             />
-                            <div v-if="form.errors.country" class="text-red-600 text-sm mt-1">
-                                {{ form.errors.country }}
-                            </div>
+                            <InputError class="mt-2" :message="form.errors.country" />
+
+                            <ul
+                                v-if="showCountrySuggestions && filteredCountries.length"
+                                class="text-gray-900 absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                            >
+                                <li
+                                    v-for="country in filteredCountries"
+                                    :key="country.alpha2"
+                                    @mousedown.prevent="selectCountry(country)"
+                                    class="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                >
+                                    {{ country.name }} {{ country.emoji }}
+                                </li>
+                            </ul>
                         </div>
 
                         <div>
                             <label for="city" class="block font-medium text-sm text-gray-700">City</label>
-                            <input
+                            <Input
                                 id="city"
                                 v-model="form.city"
                                 type="text"
-                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1"
                                 required
                             />
                             <div v-if="form.errors.city" class="text-red-600 text-sm mt-1">

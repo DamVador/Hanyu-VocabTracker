@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import Input from '@/components/Input.vue';
 
 const passwordInput = ref(null);
 const currentPasswordInput = ref(null);
@@ -40,12 +41,12 @@ const updatePassword = () => {
         <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
             <div>
                 <label for="current_password" class="block font-medium text-sm text-gray-700">Current Password</label>
-                <input
+                <Input
                     id="current_password"
                     ref="currentPasswordInput"
                     v-model="form.current_password"
                     type="password"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
+                    class="mt-1"
                     autocomplete="current-password"
                 />
                 <div v-if="form.errors.current_password" class="text-red-600 text-sm mt-1">
@@ -55,12 +56,12 @@ const updatePassword = () => {
 
             <div>
                 <label for="password" class="block font-medium text-sm text-gray-700">New Password</label>
-                <input
+                <Input
                     id="password"
                     ref="passwordInput"
                     v-model="form.password"
                     type="password"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
+                    class="mt-1"
                     autocomplete="new-password"
                 />
                 <div v-if="form.errors.password" class="text-red-600 text-sm mt-1">
@@ -70,11 +71,11 @@ const updatePassword = () => {
 
             <div>
                 <label for="password_confirmation" class="block font-medium text-sm text-gray-700">Confirm Password</label>
-                <input
+                <Input
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
+                    class="mt-1"
                     autocomplete="new-password"
                 />
                 <div v-if="form.errors.password_confirmation" class="text-red-600 text-sm mt-1">
