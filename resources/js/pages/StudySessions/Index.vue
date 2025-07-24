@@ -136,9 +136,8 @@ const exportSingleSessionToCsv = (sessionId) => {
                                 </tr>
                             </tbody>
                         </table>
-
-                        <Pagination :pagination="studySessions" :current-filters="{ search: search }" />
                     </div>
+                    <Pagination :pagination="studySessions" :current-filters="{ search: search }" />
                 </div>
             </div>
         </div>
