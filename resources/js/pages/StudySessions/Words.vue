@@ -84,8 +84,27 @@ const clearFilters = () => {
 
 const handleDeleteWord = (wordId: number) => {
     if (confirm('Are you sure you want to delete this word from the session? It will not be removed from your dictionary.')) {
-        // TODO: Implement actual deletion logic for the session
-        alert(`Deleting word ${wordId} from session (not implemented yet).`);
+        const currentSessionId = props.studySession?.id;
+
+        if (!currentSessionId) {
+            console.error("Session ID is missing. Cannot delete word from session.");
+            return;
+        }
+
+        router.delete(
+            route('session-studies.words.detach', { study_session: currentSessionId, word: wordId }),
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    console.log(`Word ${wordId} successfully detached from session ${currentSessionId}`);
+                },
+                onError: (errors) => {
+                    console.error("Error detaching word:", errors);
+                    alert("Failed to remove word from session. Please try again.");
+                }
+            }
+        );
     }
 };
 
@@ -99,17 +118,24 @@ const handleDeleteWord = (wordId: number) => {
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-semibold text-2xl text-gray-800 leading-tight">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+                        <h2 class="font-semibold text-2xl text-gray-800 leading-tight mb-4 sm:mb-0">
                             Words from "{{ props.studySession?.name || 'Loading...' }}"
                         </h2>
-                        <div class="flex gap-4">
-                            <Link :href="route('words.create')">
-                            <PrimaryButton>Add New Word</PrimaryButton>
-                            </Link>
-                            <Link :href="route('study-sessions.index')">
-                            <PrimaryButton>Back to Sessions</PrimaryButton>
-                            </Link>
+
+                        <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
+                            <a :href="route('words.create')">
+                                <button type="submit"
+                                    class="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full sm:w-auto">
+                                    Add New Word
+                                </button>
+                            </a>
+                            <a :href="route('study-sessions.index')">
+                                <button type="submit"
+                                    class="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full sm:w-auto">
+                                    Back to Sessions
+                                </button>
+                            </a>
                         </div>
                     </div>
 
@@ -193,16 +219,16 @@ const handleDeleteWord = (wordId: number) => {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.pinyin }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.translation
-                                        }}</td>
+                                    }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.failure_count
-                                        }}</td>
+                                    }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
                                         sWord.learning_status }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <Link :href="route('words.edit', { word: sWord.id })"
                                             class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</Link>
                                         <button @click="handleDeleteWord(sWord.id)"
-                                            class="text-red-600 hover:text-red-900">Remove</button>
+                                            class="cursor-pointer text-red-600 hover:text-red-900">Remove</button>
                                     </td>
                                 </tr>
                             </tbody>

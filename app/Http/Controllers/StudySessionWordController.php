@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 
 class StudySessionWordController extends Controller
 {
@@ -121,5 +122,16 @@ class StudySessionWordController extends Controller
             ),
             'allStatuses' => ['New', 'Failed', 'Revise', 'Mastered'],
         ]);
+    }
+
+    public function detachWord(StudySession $study_session, Word $word): RedirectResponse
+    {
+        if ($study_session->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $study_session->words()->detach($word->id);
+
+        return back()->with('success', 'Word successfully removed from this session.');
     }
 }

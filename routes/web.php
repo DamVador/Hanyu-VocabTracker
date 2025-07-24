@@ -51,6 +51,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/study-sessions/{study_session}/review', [StudyController::class, 'sessionReview'])->name('study.sessionReview');
     Route::get('/session-studies/{study_session}/words', [StudySessionWordController::class, 'index'])
         ->name('session-studies.words.index');
+    Route::delete('/study-sessions/{study_session}/words/{word}/detach', [StudySessionWordController::class, 'detachWord'])
+        ->name('session-studies.words.detach');
 
     // CSV Import/export Route
     Route::post('/words/import-csv', [WordImportController::class, 'importCsv'])->name('words.importCsv');
