@@ -110,8 +110,12 @@ const exportSingleSessionToCsv = (sessionId) => {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
                                         session.name }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-500">{{ session.description || '-' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ session.words_count
-                                        }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <Link :href="route('session-studies.words.index', { study_session: session.id })"
+                                            class="text-indigo-600 hover:text-indigo-900 font-medium">
+                                            {{ session.words_count }}
+                                        </Link>
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <Link :href="route('study-sessions.edit', { study_session: session.id })"
                                             class="text-indigo-600 hover:text-indigo-900 mr-2">Manage Words</Link>
