@@ -2,18 +2,18 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import TextInput from '@/Components/TextInput.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import Pagination from '@/Components/Pagination.vue';
-import Checkbox from '@/Components/Checkbox.vue'; // Assurez-vous d'avoir ce composant
+import TextInput from '@/components/TextInput.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import Pagination from '@/components/Pagination.vue';
+import Checkbox from '@/components/Checkbox.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
 const props = defineProps({
-    words: Object, // L'objet paginé des mots
-    filters: Object, // Les filtres actuels
-    allTags: Array, // Toutes les tags disponibles
-    allLearningStatuses: Array, // Tous les statuts d'apprentissage disponibles
+    words: Object,
+    filters: Object,
+    allTags: Array,
+    allLearningStatuses: Array,
 });
 
 const form = ref({
@@ -54,7 +54,6 @@ const resetFilters = () => {
         sort_direction: 'desc',
         learning_statuses: [],
     };
-    // The watcher will automatically call applyFilters()
 };
 
 const deleteWord = (wordId: number) => {

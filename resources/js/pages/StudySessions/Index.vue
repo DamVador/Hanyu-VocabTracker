@@ -2,13 +2,12 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import TextInput from '@/Components/TextInput.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import Pagination from '@/Components/Pagination.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-// Importez l'icône "MoreVertical" de Lucide
-import { MoreVertical } from 'lucide-vue-next'; // Assurez-vous que 'lucide-vue-next' est la bonne dépendance
+import TextInput from '@/components/TextInput.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import Pagination from '@/components/Pagination.vue';
+import Dropdown from '@/components/Dropdown.vue';
+import DropdownLink from '@/components/DropdownLink.vue';
+import { MoreVertical } from 'lucide-vue-next';
 
 defineOptions({ layout: AuthenticatedLayout, inheritAttrs: false });
 
@@ -51,7 +50,6 @@ const deleteSession = (sessionId: number) => {
     }
 };
 
-// Routes personnalisées maintenues comme fournies
 const startSessionReview = (sessionId: number, mode: 'all' | 'failed') => {
     router.get(route('study.sessionReview', { study_session: sessionId, mode: mode }));
 };
