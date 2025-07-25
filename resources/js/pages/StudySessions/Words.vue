@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch, onUnmounted } from 'vue';
-import TextInput from '@/Components/Input.vue';
+import TextInput from '@/components/Input.vue';
 import Select from '@/Components/Select.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
