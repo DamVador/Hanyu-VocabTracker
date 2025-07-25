@@ -111,7 +111,6 @@ const handleDeleteWord = (wordId: number) => {
 </script>
 
 <template>
-
     <Head :title="`Words from ${props.studySession?.name || 'Loading...'}`" />
 
     <div class="py-12">
@@ -122,20 +121,13 @@ const handleDeleteWord = (wordId: number) => {
                         <h2 class="font-semibold text-2xl text-gray-800 leading-tight mb-4 sm:mb-0">
                             Words from "{{ props.studySession?.name || 'Loading...' }}"
                         </h2>
-
                         <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
-                            <a :href="route('words.create')">
-                                <button type="submit"
-                                    class="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full sm:w-auto">
-                                    Add New Word
-                                </button>
-                            </a>
-                            <a :href="route('study-sessions.index')">
-                                <button type="submit"
-                                    class="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 w-full sm:w-auto">
-                                    Back to Sessions
-                                </button>
-                            </a>
+                            <Link :href="route('words.create')">
+                                <PrimaryButton class="w-full sm:w-auto">Add New Word</PrimaryButton>
+                            </Link>
+                            <Link :href="route('study-sessions.index')">
+                                <PrimaryButton class="w-full sm:w-auto">Back to Sessions</PrimaryButton>
+                            </Link>
                         </div>
                     </div>
 
@@ -160,6 +152,7 @@ const handleDeleteWord = (wordId: number) => {
                                 { value: 'pinyin', label: 'Pinyin' },
                                 { value: 'translation', label: 'Translation' },
                                 { value: 'failure_count', label: 'Failures' },
+                                { value: 'created_at', label: 'Date Added' },
                                 { value: 'learning_status', label: 'Status' }
                             ]" placeholder="Sort By" class="w-full" />
                         </div>
@@ -187,52 +180,88 @@ const handleDeleteWord = (wordId: number) => {
                             filters.</span>
                     </div>
 
-                    <div v-else class="overflow-x-auto mt-4 shadow-md sm:rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Character</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Pinyin</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Translation</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Failures</th>
-                                    <th
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status</th>
-                                    <th
-                                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="sWord in sessionWords.data" :key="sWord.id"
-                                    class="bg-white hover:bg-gray-50">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
-                                        sWord.chinese_word }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.pinyin }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.translation
-                                    }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.failure_count
-                                    }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
-                                        sWord.learning_status }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link :href="route('words.edit', { word: sWord.id })"
-                                            class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</Link>
-                                        <button @click="handleDeleteWord(sWord.id)"
-                                            class="cursor-pointer text-red-600 hover:text-red-900">Remove</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div v-else>
+                        <div class="overflow-x-auto mt-4 shadow-md sm:rounded-lg hidden sm:block">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Character</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Pinyin</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Translation</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Failures</th>
+                                        <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status</th>
+                                        <th
+                                            class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <tr v-for="sWord in sessionWords.data" :key="sWord.id"
+                                        class="bg-white hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
+                                            sWord.chinese_word }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.pinyin }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.translation
+                                            }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.failure_count
+                                            }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                                            sWord.learning_status }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <Link :href="route('words.edit', { word: sWord.id })"
+                                                class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</Link>
+                                            <button @click="handleDeleteWord(sWord.id)"
+                                                class="text-red-600 hover:text-red-900">Remove</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <ul class="block sm:hidden mt-4 bg-white shadow-sm rounded-lg divide-y divide-gray-200">
+                            <li v-for="sWord in sessionWords.data" :key="sWord.id" class="p-4 flex flex-col">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex-1">
+                                        <p class="text-lg font-medium text-gray-900">{{ sWord.chinese_word }} ({{
+                                            sWord.pinyin }})</p>
+                                        <p class="text-base text-gray-600">{{ sWord.translation }}</p>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1 ml-4">
+                                        <span
+                                            class="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                            Status: {{ sWord.learning_status }}
+                                        </span>
+                                        <span
+                                            class="px-2.5 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                                            Failures: {{ sWord.failure_count }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap gap-1 mb-2">
+                                    <span v-for="tag in sWord.tags" :key="tag"
+                                        class="px-2 py-0.5 bg-gray-200 rounded-full text-xs font-medium text-gray-700">
+                                        {{ tag }}
+                                    </span>
+                                </div>
+                                <div class="flex justify-end gap-3 mt-2">
+                                    <Link :href="route('words.edit', { word: sWord.id })"
+                                        class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Edit</Link>
+                                    <button @click="handleDeleteWord(sWord.id)"
+                                        class="text-red-600 hover:text-red-900 text-sm font-medium">Remove</button>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
 
                     <Pagination :pagination="sessionWords" :current-filters="props.filters" />
