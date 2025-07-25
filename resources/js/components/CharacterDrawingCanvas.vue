@@ -27,7 +27,7 @@ const setupCanvas = () => {
         return;
     }
 
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 5;
     ctx.lineCap = 'round';
     ctx.strokeStyle = '#333';
     ctx.fillStyle = '#fff';
