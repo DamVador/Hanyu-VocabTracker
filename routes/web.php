@@ -10,6 +10,7 @@ use App\Http\Controllers\StudyController;
 use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\ResourcesListController;
 use App\Http\Controllers\WordImportController;
+use App\Http\Controllers\StudySessionWordController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -39,8 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/words/{word}', [WordController::class, 'update'])->name('words.update');
     Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
 
-    // This route is for recording study progress. It remains under words
-    // because it's an action directly pertaining to a specific 'word' resource.
+    // Recording study progress
     Route::post('/words/{word}/record-study', [WordController::class, 'recordStudy'])->name('words.recordStudy');
 
     // Automatic study session
@@ -49,7 +49,11 @@ Route::middleware('auth')->group(function () {
     // Study Session Management Routes
     Route::resource('study-sessions', StudySessionController::class);
     Route::get('/study-sessions/{study_session}/review', [StudyController::class, 'sessionReview'])->name('study.sessionReview');
-    
+    Route::get('/session-studies/{study_session}/words', [StudySessionWordController::class, 'index'])
+        ->name('session-studies.words.index');
+    Route::delete('/study-sessions/{study_session}/words/{word}/detach', [StudySessionWordController::class, 'detachWord'])
+        ->name('session-studies.words.detach');
+
     // CSV Import/export Route
     Route::post('/words/import-csv', [WordImportController::class, 'importCsv'])->name('words.importCsv');
     Route::get('/study-sessions/{study_session}/export-csv', [StudySessionController::class, 'exportSingleCsv'])->name('study-sessions.exportSingleCsv');
