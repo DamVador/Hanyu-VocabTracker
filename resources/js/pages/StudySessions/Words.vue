@@ -16,7 +16,6 @@ const props = defineProps({
     allStatuses: Array,
 });
 
-// Initialize filters
 const pinyinFilter = ref(props.filters.pinyin || '');
 const translationFilter = ref(props.filters.translation || '');
 const sortBy = ref(props.filters.sort_by || 'failure_count');
