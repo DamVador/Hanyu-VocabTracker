@@ -2,6 +2,10 @@
 import Navbar from '@/components/Navbar.vue';
 import FlashMessages from '@/components/FlashMessages.vue';
 
+defineOptions({
+    inheritAttrs: false,
+});
+
 defineProps({
     title: String,
 });
