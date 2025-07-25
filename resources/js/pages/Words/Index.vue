@@ -2,10 +2,10 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-import TextInput from '@/Components/TextInput.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import Pagination from '@/Components/Pagination.vue';
-import Checkbox from '@/Components/Checkbox.vue'; // Assurez-vous d'avoir ce composant
+import TextInput from '@/components/TextInput.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import Pagination from '@/components/Pagination.vue';
+import Checkbox from '@/components/Checkbox.vue'; // Assurez-vous d'avoir ce composant
 
 defineOptions({ layout: AuthenticatedLayout });
 
