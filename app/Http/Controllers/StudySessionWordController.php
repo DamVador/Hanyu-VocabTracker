@@ -112,7 +112,7 @@ class StudySessionWordController extends Controller
                 'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
-                'tags' => $word->tags->pluck('name')->toArray(),
+                'tags' => $word->tags ? $word->tags->pluck('name')->toArray() : [],
                 'failure_count' => $word->total_failures ?? $word->histories->where('user_id', auth()->id())->sum('total_incorrect_revisions'),
                 'learning_status' => $word->latest_history_status_learning_status ?? ($word->histories->where('user_id', auth()->id())->sortByDesc('created_at')->first()->learning_status ?? 'New'),
             ]),

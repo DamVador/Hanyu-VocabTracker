@@ -253,6 +253,7 @@ const handleDeleteWord = (wordId: number) => {
                                         class="px-2 py-0.5 bg-gray-200 rounded-full text-xs font-medium text-gray-700">
                                         {{ tag }}
                                     </span>
+                                    <span v-if="(sWord.tags ?? []).length === 0" class="text-gray-400 text-xs italic">No tags</span>
                                 </div>
                                 <div class="flex justify-end gap-3 mt-2">
                                     <Link :href="route('words.edit', { word: sWord.id })"
