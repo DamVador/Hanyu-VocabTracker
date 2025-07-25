@@ -31,6 +31,7 @@ defineProps({
         <footer class="bg-white mt-8 py-4">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
                 &copy; {{ new Date().getFullYear() }} HanyuVocabTracker
+                <span class="mx-2">|</span> Feedbacks welcome: <a href="mailto:votre.email@example.com" class="text-blue-600 hover:text-blue-800">contact@hanyu-vocabtracker.com</a>
             </div>
         </footer>
     </div>

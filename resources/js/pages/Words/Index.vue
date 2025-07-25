@@ -2,11 +2,10 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
-
-import PrimaryButton from '@/components/PrimaryButton.vue';
 import TextInput from '@/components/TextInput.vue';
-import Checkbox from '@/components/Checkbox.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 import Pagination from '@/components/Pagination.vue';
+import Checkbox from '@/components/Checkbox.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -21,72 +20,57 @@ const form = ref({
     search_pinyin: props.filters.search_pinyin || '',
     search_translation: props.filters.search_translation || '',
     tag: props.filters.tag || '',
-    sort_by: props.filters.sort_by || 'pinyin',
-    sort_direction: props.filters.sort_direction || 'asc',
+    sort_by: props.filters.sort_by || 'created_at',
+    sort_direction: props.filters.sort_direction || 'desc',
     learning_statuses: props.filters.learning_statuses || [],
 });
 
-let searchTimeout = null;
-
 const applyFilters = () => {
-    const params = {
-        search_pinyin: form.value.search_pinyin,
-        search_translation: form.value.search_translation,
-        tag: form.value.tag,
-        sort_by: form.value.sort_by,
-        sort_direction: form.value.sort_direction,
-        learning_statuses: form.value.learning_statuses,
-    };
-
-    router.get(route('words.index'), { ...params, page: 1 }, {
+    router.get(route('words.index'), form.value, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
     });
 };
 
+watch(
+    () => form.value,
+    () => {
+        // Debounce the filter application for better performance
+        if (applyFilters.timeout) {
+            clearTimeout(applyFilters.timeout);
+        }
+        applyFilters.timeout = setTimeout(applyFilters, 300);
+    },
+    { deep: true }
+);
+
 const resetFilters = () => {
-    form.value.search_pinyin = '';
-    form.value.search_translation = '';
-    form.value.tag = '';
-    form.value.sort_by = 'pinyin';
-    form.value.sort_direction = 'asc';
-    form.value.learning_statuses = [];
-    applyFilters();
+    form.value = {
+        search_pinyin: '',
+        search_translation: '',
+        tag: '',
+        sort_by: 'created_at',
+        sort_direction: 'desc',
+        learning_statuses: [],
+    };
 };
 
-const deleteWord = (wordId) => {
-    if (confirm('Are you sure you want to delete this word? ')) {
+const deleteWord = (wordId: number) => {
+    if (confirm('Are you sure you want to delete this word from your dictionary? This action cannot be undone.')) {
         router.delete(route('words.destroy', { word: wordId }), {
+            preserveState: true,
+            preserveScroll: true,
             onSuccess: () => {
-                // Success message will be shown via flash.success
+                console.log(`Word ${wordId} deleted successfully.`);
             },
             onError: (errors) => {
-                alert('Failed to delete word: ' + Object.values(errors).join('\n'));
+                console.error("Error deleting word:", errors);
+                alert("Failed to delete word. Please try again.");
             }
         });
     }
 };
-
-watch(
-    () => form.value.search_pinyin,
-    () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => applyFilters(), 300);
-    }
-);
-watch(
-    () => form.value.search_translation,
-    () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => applyFilters(), 300);
-    }
-);
-
-watch(() => form.value.tag, applyFilters);
-watch(() => form.value.sort_by, applyFilters);
-watch(() => form.value.sort_direction, applyFilters);
-watch(() => form.value.learning_statuses, applyFilters);
 </script>
 
 <template>
@@ -103,6 +87,7 @@ watch(() => form.value.learning_statuses, applyFilters);
                     <PrimaryButton>Add New Word</PrimaryButton>
                     </Link>
                 </div>
+
                 <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 items-end">
                     <div>
                         <label for="search_pinyin" class="block text-sm font-medium text-gray-700 mb-1">Search
@@ -135,8 +120,6 @@ watch(() => form.value.learning_statuses, applyFilters);
                             class="block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="pinyin">Pinyin</option>
                             <option value="translation">Translation</option>
-                            <option value="chinese_word">Chinese Word</option>
-                            <option value="created_at">Date Added</option>
                             <option value="failed_attempts">Failed Attempts</option>
                             <option value="last_revision_date">Last Revision</option>
                             <option value="learning_status">Learning Status</option>
@@ -173,7 +156,7 @@ watch(() => form.value.learning_statuses, applyFilters);
                 </div>
 
                 <div v-if="words.data.length > 0">
-                    <div class="overflow-x-auto shadow-md sm:rounded-lg">
+                    <div class="overflow-x-auto shadow-md sm:rounded-lg hidden sm:block">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
@@ -255,6 +238,46 @@ watch(() => form.value.learning_statuses, applyFilters);
                         </table>
 
                     </div>
+
+                    <ul class="block sm:hidden mt-4 bg-white shadow-sm rounded-lg divide-y divide-gray-200">
+                        <li v-for="word in words.data" :key="word.id" class="p-4 flex flex-col">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex-1">
+                                    <p class="text-lg font-medium text-gray-900">{{ word.chinese_word }} ({{ word.pinyin
+                                        }})</p>
+                                    <p class="text-base text-gray-600">{{ word.translation }}</p>
+                                </div>
+                                <div class="flex flex-col items-end gap-1 ml-4">
+                                    <span v-if="word.learning_status"
+                                        class="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                        Status: {{ word.learning_status }}
+                                    </span>
+                                    <span v-if="word.failed_attempts > 0"
+                                        class="px-2.5 py-0.5 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                                        Failures: {{ word.failed_attempts }}
+                                    </span>
+                                    <span v-if="word.last_revision_date"
+                                        class="px-2.5 py-0.5 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                                        Last Rev: {{ word.last_revision_date }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span v-for="tag in word.tags" :key="tag"
+                                    class="px-2 py-0.5 bg-gray-200 rounded-full text-xs font-medium text-gray-700">
+                                    {{ tag }}
+                                </span>
+                                <span v-if="word.tags.length === 0" class="text-gray-400 text-xs italic">No tags</span>
+                            </div>
+                            <div class="flex justify-end gap-3 mt-2">
+                                <Link :href="route('words.edit', { word: word.id })"
+                                    class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Edit</Link>
+                                <button @click="deleteWord(word.id)"
+                                    class="text-red-600 hover:text-red-900 text-sm font-medium">Delete</button>
+                            </div>
+                        </li>
+                    </ul>
+
                     <Pagination :pagination="words" :current-filters="form" />
                 </div>
                 <div v-else class="text-center text-gray-500 py-8">
