@@ -4,8 +4,10 @@ import InputError from '@/components/InputError.vue';
 import InputLabel from '@/components/InputLabel.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
 import { Head, useForm, Link } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { ref, watch, nextTick } from 'vue';
 import Input from '@/components/Input.vue';
+import { Keyboard } from 'lucide-vue-next';
+import PinyinKeyboard from '@/components/PinyinKeyboard.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -72,6 +74,45 @@ const submit = () => {
         },
     });
 };
+
+const showPinyinKeyboard = ref(false);
+
+const insertPinyinChar = (char: string) => {
+    const pinyinInput = document.getElementById('pinyin_input') as HTMLInputElement;
+    if (!pinyinInput) return;
+
+    const start = pinyinInput.selectionStart ?? 0;
+    const end = pinyinInput.selectionEnd ?? 0;
+
+    form.pinyin = form.pinyin.substring(0, start) + char + form.pinyin.substring(end);
+
+    nextTick(() => {
+        pinyinInput.setSelectionRange(start + char.length, start + char.length);
+        pinyinInput.focus();
+    });
+};
+
+const deletePinyinChar = () => {
+    const pinyinInput = document.getElementById('pinyin_input') as HTMLInputElement;
+    if (!pinyinInput) return;
+
+    const start = pinyinInput.selectionStart ?? 0;
+    const end = pinyinInput.selectionEnd ?? 0;
+
+    if (start === end && start > 0) {
+        form.pinyin = form.pinyin.substring(0, start - 1) + form.pinyin.substring(end);
+        nextTick(() => {
+            pinyinInput.setSelectionRange(start - 1, start - 1);
+            pinyinInput.focus();
+        });
+    } else if (start !== end) {
+        form.pinyin = form.pinyin.substring(0, start) + form.pinyin.substring(end);
+        nextTick(() => {
+            pinyinInput.setSelectionRange(start, start);
+            pinyinInput.focus();
+        });
+    }
+};
 </script>
 
 <template>
@@ -89,11 +130,46 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.chinese_word" />
                     </div>
 
+                    <!-- Bloc de l'input Pinyin avec icône et clavier -->
                     <div class="mt-4">
-                        <InputLabel for="pinyin" value="Pinyin" />
-                        <Input id="pinyin" type="text" class="mt-1 block w-full" v-model="form.pinyin" required />
+                        <InputLabel for="pinyin_input" value="Pinyin" />
+                        <div class="relative flex items-center">
+                            <Input
+                                id="pinyin_input"
+                                type="text"
+                                class="mt-1 block w-full pr-10"
+                                v-model="form.pinyin"
+                                required
+                            />
+                            <button
+                                type="button"
+                                @click="showPinyinKeyboard = !showPinyinKeyboard"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                aria-label="Open Pinyin Keyboard"
+                            >
+                                <Keyboard class="h-5 w-5" /> <!-- Icône Lucide -->
+                            </button>
+                        </div>
                         <InputError class="mt-2" :message="form.errors.pinyin" />
+
+                        <!-- Clavier Pinyin Virtuel (avec transition) -->
+                        <Transition
+                            enter-active-class="transition ease-out duration-200"
+                            enter-from-class="opacity-0 scale-95"
+                            enter-to-class="opacity-100 scale-100"
+                            leave-active-class="transition ease-in duration-150"
+                            leave-from-class="opacity-100 scale-100"
+                            leave-to-class="opacity-0 scale-95"
+                        >
+                            <PinyinKeyboard
+                                v-if="showPinyinKeyboard"
+                                @insert="insertPinyinChar"
+                                @delete="deletePinyinChar"
+                                class="mt-4"
+                            />
+                        </Transition>
                     </div>
+                    <!-- Fin du bloc de l'input Pinyin -->
 
                     <div class="mt-4">
                         <InputLabel for="translation" value="Translation" />
