@@ -5,7 +5,7 @@
             border border-gray-300 hover:border-gray-400
             rounded-md shadow-sm
             text-gray-900 placeholder-gray-400
-            w-full px-3 py-2 text-base md:text-sm // Note: py-2 pour les textarea pour un meilleur padding vertical
+            w-full px-3 py-2 text-base md:text-sm
             outline-none
             transition-colors duration-200 ease-in-out
             focus:border-gray-400

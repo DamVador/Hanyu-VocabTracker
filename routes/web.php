@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/words/{word}/edit', [WordController::class, 'edit'])->name('words.edit');
     Route::put('/words/{word}', [WordController::class, 'update'])->name('words.update');
     Route::delete('/words/{word}', [WordController::class, 'destroy'])->name('words.destroy');
+    Route::post('/words/{word}/save-notes', [WordController::class, 'saveNotes'])->name('words.saveNotes');
 
     // Recording study progress
     Route::post('/words/{word}/record-study', [WordController::class, 'recordStudy'])->name('words.recordStudy');

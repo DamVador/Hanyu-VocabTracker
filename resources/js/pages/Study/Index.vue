@@ -3,8 +3,9 @@ import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import axios from 'axios';
-import { PenTool } from 'lucide-vue-next';
+import { PenTool, MessageSquareText } from 'lucide-vue-next';
 import CharacterDrawingCanvas from '@/components/CharacterDrawingCanvas.vue';
+import WordNotesModal from '@/components/WordNotesModal.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
 
@@ -20,8 +21,10 @@ const initialDisplayMode = ref('pinyin');
 
 const hasAnswerBeenShown = ref(false);
 const showDrawingModal = ref(false);
+const showNotesModal = ref(false);
 
 const wordDrawings = ref<Record<number, string>>({});
+const wordNotes = ref<Record<number, string>>({});
 
 const currentWord = computed(() => {
     return props.wordsForSession[currentWordIndex.value];
@@ -29,6 +32,10 @@ const currentWord = computed(() => {
 
 const currentWordDrawing = computed(() => {
     return wordDrawings.value[currentWord.value?.id] || null;
+});
+
+const currentWordNotes = computed(() => {
+    return wordNotes.value[currentWord.value?.id] || '';
 });
 
 const progress = computed(() => {
@@ -61,6 +68,7 @@ const goToNextWord = () => {
     showAnswer.value = false;
     hasAnswerBeenShown.value = false;
     showDrawingModal.value = false;
+    showNotesModal.value = false;
     if (currentWordIndex.value < props.wordsForSession.length - 1) {
         currentWordIndex.value++;
     } else {
@@ -74,7 +82,9 @@ const resetSession = () => {
     hasAnswerBeenShown.value = false;
     sessionComplete.value = false;
     showDrawingModal.value = false;
+    showNotesModal.value = false;
     wordDrawings.value = {};
+    wordNotes.value = {};
     router.reload();
 };
 
@@ -96,6 +106,28 @@ const closeDrawingModal = () => {
 const saveDrawingForWord = (dataUrl: string) => {
     if (currentWord.value) {
         wordDrawings.value[currentWord.value.id] = dataUrl;
+    }
+};
+
+const openNotesModal = () => {
+    showNotesModal.value = true;
+};
+
+const closeNotesModal = () => {
+    showNotesModal.value = false;
+};
+
+const saveNotesForWord = (notesContent: string) => {
+    if (currentWord.value) {
+        wordNotes.value[currentWord.value.id] = notesContent;
+        axios.post(route('words.saveNotes', currentWord.value.id), { notes: notesContent })
+            .then(response => {
+                // Optionnel: Mettre à jour l'historique ou d'autres données si le backend renvoie des informations
+            })
+            .catch(error => {
+                console.error('Error saving notes:', error);
+                alert('Failed to save notes.');
+            });
     }
 };
 </script>
@@ -164,16 +196,24 @@ const saveDrawingForWord = (dataUrl: string) => {
                                 <p class="text-sm text-gray-500 mb-2">Word {{ currentWordIndex + 1 }} / {{
                                     props.wordsForSession.length }}</p>
 
-                                <div class="absolute top-4 right-4 flex items-center gap-2">
-                                    <img v-if="currentWordDrawing" :src="currentWordDrawing"
-                                        alt="Character Drawing Preview"
-                                        class="w-10 h-10 border border-gray-300 rounded-md object-contain cursor-pointer"
-                                        @click="openDrawingModal" title="View/Edit Drawing" />
+                                <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <img v-if="currentWordDrawing" :src="currentWordDrawing"
+                                            alt="Character Drawing Preview"
+                                            class="w-10 h-10 border border-gray-300 rounded-md object-contain cursor-pointer"
+                                            @click="openDrawingModal" title="View/Edit Drawing" />
 
-                                    <button @click="openDrawingModal"
-                                        class="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                        aria-label="Draw character" title="Draw Character">
-                                        <PenTool class="h-5 w-5" />
+                                        <button @click="openDrawingModal"
+                                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                            aria-label="Draw character" title="Draw Character">
+                                            <PenTool class="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                    <button @click="openNotesModal"
+                                            class="p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                            aria-label="Add/View Notes"
+                                            :title="currentWordNotes ? 'View/Edit Notes' : 'Add Notes'">
+                                        <MessageSquareText class="h-5 w-5" :class="{'text-indigo-500': currentWordNotes}" />
                                     </button>
                                 </div>
 
@@ -242,5 +282,11 @@ const saveDrawingForWord = (dataUrl: string) => {
 
         <CharacterDrawingCanvas v-show="showDrawingModal" :initial-drawing-data-url="currentWordDrawing"
             @close="closeDrawingModal" @save-drawing="saveDrawingForWord" />
+        <WordNotesModal
+            :isVisible="showNotesModal"
+            :initialNotes="currentWordNotes"
+            @close="closeNotesModal"
+            @saveNotes="saveNotesForWord"
+        />
     </div>
 </template>

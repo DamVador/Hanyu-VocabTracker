@@ -15,8 +15,7 @@ class Word extends Model
         'chinese_word',
         'pinyin',
         'translation',
-        // TODO - Add note to word
-        // 'notes',
+        'notes',
     ];
 
     public function user()
