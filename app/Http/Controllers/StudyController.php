@@ -154,6 +154,7 @@ class StudyController extends Controller
             ->with(['tags', 'histories' => function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             }])
+            ->select('id', 'chinese_word', 'pinyin', 'translation', 'notes')
             ->get()
             ->filter(function ($word) use ($user) {
                 $history = $word->histories->first();
@@ -183,32 +184,19 @@ class StudyController extends Controller
 
         $wordsQuery = $studySession->words()->with(['tags', 'histories' => function ($query) use ($request) {
             $query->where('user_id', $request->user()->id);
-        }]);
+        }])->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes'); // Added 'words.notes'
 
         if ($mode === 'failed') {
-            $wordsQuery->whereHas('histories', function ($query) use ($request) {
-                $query->where('user_id', $request->user()->id)
-                      ->where('total_incorrect_revisions', '>', 0)
-                      ->where('learning_status', '!=', 'Mastered');
-            }, '>=', 1)
-            ->orWhereDoesntHave('histories', function ($query) use ($request) {
-                $query->where('user_id', $request->user()->id);
-            });
-            // The orWhereDoesntHave part ensures new words that haven't been 'failed' yet
-            // but also haven't been studied at all (thus no history) are not excluded from 'failed'
-            // if we interpret 'failed' as 'not yet mastered' or 'needs attention'.
-            // For a strict "previously failed" meaning, you might remove the orWhereDoesntHave.
-            // Let's go with "strict failed" for clarity first.
             // Simplified "failed" logic: only include words with history AND total_incorrect_revisions > 0
              $wordsQuery = $studySession->words()->with(['tags', 'histories' => function ($query) use ($request) {
                 $query->where('user_id', $request->user()->id);
              }])->whereHas('histories', function ($query) use ($request) {
                  $query->where('user_id', $request->user()->id)
                        ->where('total_incorrect_revisions', '>', 0);
-             });
+             })->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes'); // Added 'words.notes' here too
         }
 
-        $wordsForSession = $wordsQuery->get()->shuffle()->values(); // Shuffle words for review
+        $wordsForSession = $wordsQuery->get()->shuffle()->values();
 
         return $this->transformAndRenderStudyWords($wordsForSession);
     }
@@ -219,7 +207,7 @@ class StudyController extends Controller
      */
     protected function transformAndRenderStudyWords($wordsForSession)
     {
-        $user = auth()->user(); // Assuming user is authenticated
+        $user = auth()->user();
 
         $transformedWords = $wordsForSession->map(function ($word) use ($user) {
             $history = $word->histories->firstWhere('user_id', $user->id);
@@ -229,6 +217,7 @@ class StudyController extends Controller
                 'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
+                'notes' => $word->notes,
                 'tags' => $word->tags->pluck('name')->toArray(),
                 'history' => $history ? [
                     'last_revision' => $history->last_revision?->format('M d, Y H:i'),
