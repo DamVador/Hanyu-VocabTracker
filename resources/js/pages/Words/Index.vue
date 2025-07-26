@@ -62,7 +62,7 @@ const deleteWord = (wordId: number) => {
             preserveState: true,
             preserveScroll: true,
             onSuccess: () => {
-                console.log(`Word ${wordId} deleted successfully.`);
+                // console.log(`Word ${wordId} deleted successfully.`);
             },
             onError: (errors) => {
                 console.error("Error deleting word:", errors);
