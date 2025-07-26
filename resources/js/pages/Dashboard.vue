@@ -134,7 +134,10 @@ const submitCsvImport = () => {
 
       <div class="flex flex-col gap-6 lg:order-1">
         <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm h-full">
-          <h3 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">Study Progress</h3>
+          <h3 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">Study Progress</h3>
+          <p class="text-sm text-gray-600 mb-6">
+            Dive into your personalized review sessions (automatic study sessions) or manage your custom study sets.
+          </p>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             <div class="bg-gray-50 p-4 rounded-md flex items-center justify-between">
