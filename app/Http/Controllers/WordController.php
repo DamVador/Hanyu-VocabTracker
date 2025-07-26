@@ -285,6 +285,7 @@ class WordController extends Controller
             'chinese_word' => 'required|string|max:255',
             'pinyin' => 'required|string|max:255',
             'translation' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
             'study_session_ids' => 'nullable|array',
@@ -295,6 +296,7 @@ class WordController extends Controller
             'chinese_word' => $validated['chinese_word'],
             'pinyin' => $validated['pinyin'],
             'translation' => $validated['translation'],
+            'notes' => $validated['notes'],
         ]);
 
         if (isset($validated['tags']) && !empty($validated['tags'])) {
@@ -332,6 +334,7 @@ class WordController extends Controller
                 'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
+                'notes' => $word->notes
             ],
             'currentTags' => $word->tags->pluck('name')->toArray(),
             'allTags' => $allTags,
@@ -353,6 +356,7 @@ class WordController extends Controller
             'chinese_word' => 'required|string|max:255',
             'pinyin' => 'required|string|max:255',
             'translation' => 'required|string|max:255',
+            'notes' => 'nullable|string|max:1000',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:255',
             'study_session_ids' => 'nullable|array',
@@ -363,6 +367,7 @@ class WordController extends Controller
             'chinese_word' => $validated['chinese_word'],
             'pinyin' => $validated['pinyin'],
             'translation' => $validated['translation'],
+            'notes' => $validated['notes'],
         ]);
 
         if (isset($validated['tags']) && !empty($validated['tags'])) {
@@ -462,4 +467,16 @@ class WordController extends Controller
             'history' => $history->toArray(),
         ]);
     }
+
+    public function saveNotes(Request $request, Word $word)
+    {
+        $request->validate([
+            'notes' => 'nullable|string',
+        ]);
+
+        $word->notes = $request->input('notes');
+        $word->save();
+
+        return response()->json(['message' => 'Notes saved successfully!', 'notes' => $word->notes]);
+    } 
 }

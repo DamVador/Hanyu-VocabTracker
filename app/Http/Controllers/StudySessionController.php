@@ -214,4 +214,40 @@ class StudySessionController extends Controller
 
         return $this->generateCsvResponse($sessionsToExport, $filename);
     }
+
+    /**
+     * Display the study session review page.
+     */
+    public function review(Request $request, StudySession $studySession, string $mode = 'all')
+    {
+        if ($studySession->user_id !== $request->user()->id) {
+            abort(403, 'Unauthorized access to study session.');
+        }
+
+        $wordsQuery = $studySession->words();
+
+        $wordsQuery->with('history');
+
+        if ($mode === 'failed') {
+            $wordsQuery->whereHas('history', function ($q) {
+                $q->where('learning_status', 'Forgot');
+            });
+        } elseif ($mode === 'revise') {
+            $wordsQuery->whereHas('history', function ($q) {
+                $q->whereIn('learning_status', ['Revise', 'New']);
+            });
+        } elseif ($mode === 'mastered') {
+            $wordsQuery->whereHas('history', function ($q) {
+                $q->where('learning_status', 'Mastered');
+            });
+        }
+
+        $wordsForSession = $wordsQuery->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes')->get();
+
+        return Inertia::render('Study/Index', [
+            'wordsForSession' => $wordsForSession,
+            'allTags' => $request->user()->tags()->select('id', 'name')->get(),
+            'mode' => $mode,
+        ]);
+    }
 }
