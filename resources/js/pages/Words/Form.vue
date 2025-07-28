@@ -47,6 +47,10 @@ const removeTag = (tag: string) => {
 
 const selectedStudySessionIds = ref(new Set(props.form.study_session_ids || []));
 
+watch(() => props.form.study_session_ids, (newVal) => {
+    selectedStudySessionIds.value = new Set(newVal || []);
+}, { deep: true, immediate: true });
+
 watch(selectedStudySessionIds, (newSet) => {
     props.form.study_session_ids = Array.from(newSet);
 }, { deep: true });
