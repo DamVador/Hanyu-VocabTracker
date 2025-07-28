@@ -102,7 +102,7 @@ const handleDeleteWord = (wordId: number) => {
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: () => {
-                    console.log(`Word ${wordId} successfully detached from session ${currentSessionId}`);
+                    // console.log(`Word ${wordId} successfully detached from session ${currentSessionId}`);
                 },
                 onError: (errors) => {
                     console.error("Error detaching word:", errors);
@@ -127,7 +127,10 @@ const handleDeleteWord = (wordId: number) => {
                             Words from "{{ props.studySession?.name || 'Loading...' }}"
                         </h2>
                         <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
-                            <Link :href="route('words.create')">
+                            <Link :href="route('words.create', { 
+                                    redirect_to: route('session-studies.words.index', { study_session: props.studySession?.id }),
+                                    prefill_study_session_id: props.studySession?.id
+                            })">
                                 <PrimaryButton class="w-full sm:w-auto">Add New Word</PrimaryButton>
                             </Link>
                             <Link :href="route('study-sessions.index')">

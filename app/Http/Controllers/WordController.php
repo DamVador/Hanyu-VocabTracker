@@ -263,9 +263,18 @@ class WordController extends Controller
     {
         $allTags = Tag::pluck('name')->toArray();
         $userStudySessions = $request->user()->studySessions()->select('id', 'name')->get();
+        $redirectTo = $request->query('redirect_to');
+        $prefillStudySessionId = $request->query('prefill_study_session_id');
+
+        if ($prefillStudySessionId !== null) {
+            $prefillStudySessionId = (int) $prefillStudySessionId;
+        }
+
         return Inertia::render('Words/Create', [
             'allTags' => $allTags,
             'userStudySessions' => $userStudySessions,
+            'redirect_to' => $redirectTo,
+            'prefill_study_session_id' => $prefillStudySessionId,
         ]);
     }
 
@@ -281,6 +290,7 @@ class WordController extends Controller
             'tags.*' => 'string|max:255',
             'study_session_ids' => 'nullable|array',
             'study_session_ids.*' => 'exists:study_sessions,id',
+            '_redirect_to' => 'nullable|url',
         ]);
 
         $word = $request->user()->words()->create([
@@ -303,7 +313,13 @@ class WordController extends Controller
             $word->studySessions()->attach($validated['study_session_ids']);
         }
 
-        return redirect()->route('words.index')->with('success', 'Word created successfully!');
+        $redirectTo = $validated['_redirect_to'] ?? null;
+
+        if ($redirectTo) {
+            return redirect($redirectTo)->with('success', 'Word created successfully!');
+        } else {
+            return redirect()->route('words.index')->with('success', 'Word created successfully!');
+        }
     }
 
     public function edit(Request $request, Word $word)
