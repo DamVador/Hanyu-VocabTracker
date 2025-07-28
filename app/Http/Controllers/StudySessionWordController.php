@@ -20,15 +20,12 @@ class StudySessionWordController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $query = Word::query();
+        $user = $request->user();
 
-        $query->join('study_session_word', 'words.id', '=', 'study_session_word.word_id')
-              ->where('study_session_word.study_session_id', $study_session->id);
-
-        $query->with('tags');
-        $query->with(['histories' => function($q) {
-            $q->where('user_id', auth()->id())->latest();
-        }]);
+        $query = Word::query()
+            ->join('study_session_word', 'words.id', '=', 'study_session_word.word_id')
+            ->where('study_session_word.study_session_id', $study_session->id)
+            ->select('words.*');
 
         if ($request->has('pinyin') && $request->input('pinyin')) {
             $query->where('words.pinyin', 'like', '%' . $request->input('pinyin') . '%');
@@ -49,61 +46,37 @@ class StudySessionWordController extends Controller
             $sortDirection = 'desc';
         }
 
-        $baseSelectColumns = [
-            'words.id',
-            'words.chinese_word',
-            'words.pinyin',
-            'words.translation',
-            'words.created_at',
-            'words.updated_at',
-        ];
+        $totalFailuresSubquery = History::select(DB::raw('SUM(total_incorrect_revisions)'))
+            ->whereColumn('word_id', 'words.id')
+            ->where('user_id', $user->id);
+
+        $query->addSelect(['total_failures' => $totalFailuresSubquery]);
+
+        $latestLearningStatusSubquery = History::select('learning_status')
+            ->whereColumn('word_id', 'words.id')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->limit(1);
+
+        $query->addSelect(['current_learning_status' => $latestLearningStatusSubquery]);
+
+        $lastRevisionDateSubquery = History::select('created_at')
+            ->whereColumn('word_id', 'words.id')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->limit(1);
+
+        $query->addSelect(['last_revision_date_raw' => $lastRevisionDateSubquery]);
 
         if ($sortBy === 'failure_count') {
-            $query->leftJoin('histories', function ($join) use ($request) {
-                $join->on('words.id', '=', 'histories.word_id')
-                     ->where('histories.user_id', '=', $request->user()->id);
-            })
-            ->select($baseSelectColumns)
-            ->addSelect(DB::raw('SUM(histories.total_incorrect_revisions) as total_failures'))
-            ->groupBy(array_merge($baseSelectColumns, [
-                'study_session_word.study_session_id',
-                'study_session_word.word_id'
-            ]))
-            ->orderBy('total_failures', $sortDirection);
-
+            $query->orderByRaw('(' . $totalFailuresSubquery->toSql() . ') ' . $sortDirection, $totalFailuresSubquery->getBindings());
         } elseif ($sortBy === 'learning_status') {
-            $query->select($baseSelectColumns)
-                ->addSelect('latest_history.learning_status as latest_history_status_learning_status')
-                ->leftJoinSub(
-                    DB::table('histories')
-                        ->select('word_id', DB::raw('MAX(created_at) as max_created_at'))
-                        ->where('user_id', $request->user()->id)
-                        ->groupBy('word_id'),
-                    'latest_history_max_date',
-                    function ($join) {
-                        $join->on('words.id', '=', 'latest_history_max_date.word_id');
-                    }
-                )
-                ->leftJoin('histories as latest_history', function ($join) use ($request) {
-                    $join->on('latest_history.word_id', '=', 'words.id')
-                        ->on('latest_history.created_at', '=', 'latest_history_max_date.max_created_at')
-                        ->where('latest_history.user_id', '=', $request->user()->id);
-                })
-                ->groupBy(array_merge($baseSelectColumns, [
-                    'study_session_word.study_session_id',
-                    'study_session_word.word_id',
-                    'latest_history.learning_status'
-                ]))
-                ->orderBy('latest_history_status_learning_status', $sortDirection);
-        } else {
-            $query->select(array_merge($baseSelectColumns, [
-                'study_session_word.study_session_id',
-                'study_session_word.word_id'
-            ]));
+            $query->orderByRaw('(' . $latestLearningStatusSubquery->toSql() . ') ' . $sortDirection, $latestLearningStatusSubquery->getBindings());
+        } elseif (in_array($sortBy, ['chinese_word', 'pinyin', 'translation', 'created_at'])) {
             $query->orderBy('words.' . $sortBy, $sortDirection);
         }
 
-        $sessionWords = $query->paginate(10);
+        $sessionWords = $query->with('tags')->paginate(10)->withQueryString();
 
         return Inertia::render('StudySessions/Words', [
             'studySession' => $study_session->only('id', 'name'),
@@ -112,13 +85,17 @@ class StudySessionWordController extends Controller
                 'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
-                'tags' => $word->tags ? $word->tags->pluck('name')->toArray() : [],
-                'failure_count' => $word->total_failures ?? $word->histories->where('user_id', auth()->id())->sum('total_incorrect_revisions'),
-                'learning_status' => $word->latest_history_status_learning_status ?? ($word->histories->where('user_id', auth()->id())->sortByDesc('created_at')->first()->learning_status ?? 'New'),
+                'tags' => $word->tags->pluck('name')->toArray(),
+                'failure_count' => $word->total_failures ?? 0,
+                'learning_status' => $word->current_learning_status ?? 'New',
+                'last_revision_date' => $word->last_revision_date_raw ? Carbon::parse($word->last_revision_date_raw)->format('M d, Y') : 'Never',
             ]),
             'filters' => array_merge(
                 $request->only(['pinyin', 'translation']),
-                compact('sortBy', 'sortDirection')
+                [
+                    'sort_by' => $sortBy,
+                    'sort_direction' => $sortDirection,
+                ]
             ),
             'allStatuses' => ['New', 'Failed', 'Revise', 'Mastered'],
         ]);

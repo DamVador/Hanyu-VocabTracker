@@ -228,7 +228,7 @@ const deleteWord = (wordId: number) => {
                                         {{ word.learning_status }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <Link :href="route('words.edit', { word: word.id })"
+                                        <Link :href="route('words.edit', word.id)"
                                             class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
                                         <button @click="deleteWord(word.id)"
                                             class="cursor-pointer text-red-600 hover:text-red-900">Delete</button>

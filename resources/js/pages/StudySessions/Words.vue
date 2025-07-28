@@ -71,12 +71,18 @@ onUnmounted(() => {
     }
 });
 
+watch(() => props.filters, (newFilters) => {
+    pinyinFilter.value = newFilters.pinyin || '';
+    translationFilter.value = newFilters.translation || '';
+    sortBy.value = newFilters.sort_by || 'failure_count';
+    sortDirection.value = newFilters.sort_direction || 'desc';
+}, { deep: true });
+
 watch([pinyinFilter, translationFilter, sortBy, sortDirection], applyFilters);
 
 const clearFilters = () => {
     pinyinFilter.value = '';
     translationFilter.value = '';
-    // statusFilter.value = ''; // TODO - filter by status
     sortBy.value = 'failure_count';
     sortDirection.value = 'desc';
 };

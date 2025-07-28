@@ -30,61 +30,49 @@ class WordController extends Controller
         $sortDirection = $request->input('sort_direction', 'asc');
         $selectedLearningStatuses = $request->input('learning_statuses', []);
 
-        $query = Word::query()->where('user_id', $user->id);
+        $query = Word::query();
+        $query->select('words.*');
 
-        // Apply search filters
-        if ($searchPinyin) {
-            $query->where('pinyin', 'like', '%' . $searchPinyin . '%');
-        }
-        if ($searchTranslation) {
-            $query->where('translation', 'like', '%' . $searchTranslation . '%');
-        }
+        $latestHistorySubquery = History::select('word_id', 'learning_status', 'created_at')
+            ->where('user_id', $user->id)
+            ->whereRaw('histories.id = (SELECT MAX(id) FROM histories WHERE word_id = histories.word_id AND user_id = ?)', [$user->id]);
 
-        // Apply tag filter
-        if ($tag) {
-            $query->whereHas('tags', function ($q) use ($tag) {
-                $q->where('name', $tag);
-            });
-        }
+        $query->leftJoinSub($latestHistorySubquery, 'latest_word_history', function ($join) {
+            $join->on('words.id', '=', 'latest_word_history.word_id');
+        })
+        ->addSelect('latest_word_history.learning_status as current_learning_status')
+        ->addSelect('latest_word_history.created_at as latest_revision_created_at'); // Ajout de la date pour le tri et l'affichage
 
-        // Add 'failed_attempts' using withSum on 'total_incorrect_revisions'
+        $query->where(function ($q) use ($user, $searchPinyin, $searchTranslation, $tag, $selectedLearningStatuses) {
+            $q->where('words.user_id', $user->id);
+
+            if ($searchPinyin) {
+                $q->where('pinyin', 'like', '%' . $searchPinyin . '%');
+            }
+            if ($searchTranslation) {
+                $q->where('translation', 'like', '%' . $searchTranslation . '%');
+            }
+
+            if ($tag) {
+                $q->whereHas('tags', function ($tagQuery) use ($tag) {
+                    $tagQuery->where('name', $tag);
+                });
+            }
+
+            if (!empty($selectedLearningStatuses)) {
+                $q->where(function ($statusQuery) use ($selectedLearningStatuses) {
+                    $statusQuery->whereIn('latest_word_history.learning_status', $selectedLearningStatuses);
+
+                    if (in_array('New', $selectedLearningStatuses)) {
+                        $statusQuery->orWhereNull('latest_word_history.learning_status');
+                    }
+                });
+            }
+        });
+
         $query->withSum(['histories as failed_attempts' => function ($historyQuery) use ($user) {
             $historyQuery->where('user_id', $user->id);
         }], 'total_incorrect_revisions');
-
-        $query->withMax(['histories as last_revision_date' => function ($historyQuery) use ($user) {
-            $historyQuery->where('user_id', $user->id);
-        }], 'created_at');
-
-        // To get the latest learning_status
-        $latestStatusPerWord = DB::table('histories as h1')
-            ->select('h1.word_id', 'h1.learning_status')
-            ->join(
-                DB::raw('(SELECT word_id, MAX(created_at) as max_created_at FROM histories WHERE user_id = ' . $user->id . ' GROUP BY word_id) as h2'),
-                function($join) {
-                    $join->on('h1.word_id', '=', 'h2.word_id')
-                         ->on('h1.created_at', '=', 'h2.max_created_at');
-                }
-            )
-            ->where('h1.user_id', $user->id);
-
-        $query->leftJoinSub($latestStatusPerWord, 'latest_word_history', function ($join) {
-            $join->on('words.id', '=', 'latest_word_history.word_id');
-        })
-        ->addSelect('latest_word_history.learning_status as current_learning_status');
-
-        // New: Apply learning_status filter
-        if (!empty($selectedLearningStatuses)) {
-            // Filter words based on their current_learning_status.
-             $query->whereIn('latest_word_history.learning_status', $selectedLearningStatuses)
-                   ->orWhere(function ($q) use ($selectedLearningStatuses) {
-                       // If 'New' is selected and there's no history, include these words.
-                       // This handles words that don't appear in the history table yet.
-                       if (in_array('New', $selectedLearningStatuses)) {
-                           $q->whereNull('latest_word_history.learning_status');
-                       }
-                   });
-        }
 
         $sortColumnMap = [
             'pinyin' => 'pinyin',
@@ -92,7 +80,7 @@ class WordController extends Controller
             'chinese_word' => 'chinese_word',
             'created_at' => 'created_at',
             'failed_attempts' => 'failed_attempts',
-            'last_revision_date' => 'last_revision_date',
+            'last_revision_date' => 'latest_revision_created_at',
             'learning_status' => 'current_learning_status',
         ];
 
@@ -100,13 +88,10 @@ class WordController extends Controller
 
         $query->orderBy($dbSortColumn, $sortDirection);
 
-
-        // Paginate the results and append query string for filters
         $words = $query->with('tags')
                        ->paginate(10)
                        ->withQueryString();
 
-        // Map the collection for Inertia
         $words->through(fn ($word) => [
             'id' => $word->id,
             'chinese_word' => $word->chinese_word,
@@ -115,12 +100,18 @@ class WordController extends Controller
             'tags' => $word->tags->pluck('name')->toArray(),
             'created_at' => Carbon::parse($word->created_at)->format('M d, Y'),
             'failed_attempts' => $word->failed_attempts ?? 0,
-            'last_revision_date' => $word->last_revision_date ? Carbon::parse($word->last_revision_date)->format('M d, Y') : 'Never',
+            'last_revision_date' => $word->latest_revision_created_at ? Carbon::parse($word->latest_revision_created_at)->format('M d, Y') : 'Never',
             'learning_status' => $word->current_learning_status ?? 'New',
         ]);
 
-        // Get all unique tags for the filter dropdown
-        $allTags = Tag::pluck('name')->unique()->sort()->values()->all();
+        $allTags = Tag::select('tags.name')
+                      ->join('tag_word', 'tags.id', '=', 'tag_word.tag_id')
+                      ->join('words', 'tag_word.word_id', '=', 'words.id')
+                      ->where('words.user_id', $user->id)
+                      ->distinct()
+                      ->orderBy('tags.name')
+                      ->pluck('name')
+                      ->all();
 
         $allLearningStatuses = History::select('learning_status')
                                 ->where('user_id', $user->id)
@@ -142,10 +133,10 @@ class WordController extends Controller
                 'tag' => $tag,
                 'sort_by' => $sortBy,
                 'sort_direction' => $sortDirection,
-                'learning_statuses' => $selectedLearningStatuses, // Pass back selected statuses
+                'learning_statuses' => $selectedLearningStatuses,
             ],
             'allTags' => $allTags,
-            'allLearningStatuses' => $allLearningStatuses, // Pass distinct statuses to frontend
+            'allLearningStatuses' => $allLearningStatuses,
         ]);
     }
 
