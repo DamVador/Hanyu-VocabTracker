@@ -4,7 +4,7 @@ import InputLabel from '@/components/InputLabel.vue';
 import PrimaryButton from '@/components/PrimaryButton.vue';
 import Input from '@/components/Input.vue';
 import TextareaInput from '@/components/TextareaInput.vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
@@ -19,7 +19,11 @@ const props = defineProps({
     isEdit: {
         type: Boolean,
         default: false,
-    }
+    },
+    currentSessionId: {
+        type: Number,
+        default: null,
+    },
 });
 
 const initialSelectedWordIds = props.studySession?.words?.map(word => word.id) || [];
@@ -139,7 +143,13 @@ const submit = () => {
             <InputError class="mt-2" :message="form.errors.word_ids" />
         </div>
 
-        <div class="flex items-center justify-end mt-6">
+        <div class="flex items-center justify-end mt-6 gap-3">
+            <Link v-if="isEdit && currentSessionId" :href="route('words.create', {
+                redirect_to: route('study-sessions.edit', { study_session: currentSessionId }),
+                prefill_study_session_id: currentSessionId
+            })">
+                <PrimaryButton type="button">Add New Word</PrimaryButton>
+            </Link>
             <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                 {{ isEdit ? 'Update Session' : 'Create Session' }}
             </PrimaryButton>
