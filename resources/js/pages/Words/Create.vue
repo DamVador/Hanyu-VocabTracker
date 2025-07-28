@@ -9,7 +9,17 @@ defineOptions({ layout: AuthenticatedLayout });
 const props = defineProps({
     allTags: Array,
     userStudySessions: Array,
+    redirect_to: {
+        type: String,
+        default: () => window.route('words.index'),
+    },
+    prefill_study_session_id: {
+        type: Number,
+        default: null,
+    },
 });
+
+const initialStudySessionIds = props.prefill_study_session_id ? [props.prefill_study_session_id] : [];
 
 const form = useForm({
     chinese_word: '',
@@ -17,7 +27,8 @@ const form = useForm({
     translation: '',
     notes: '',
     tags: [],
-    study_session_ids: [],
+    study_session_ids: initialStudySessionIds,
+    _redirect_to: props.redirect_to,
 });
 
 const submit = () => {
