@@ -3,6 +3,7 @@ import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/Input.vue';
+import Select from '@/components/Select.vue';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
@@ -11,6 +12,7 @@ import { ref, computed } from 'vue';
 
 const props = defineProps({
     countries: Array,
+    languagesStudiedOptions: Array,
 });
 
 const form = useForm({
@@ -19,6 +21,7 @@ const form = useForm({
     last_name: '',
     email: '',
     country: '',
+    languages_studied: [],
     password: '',
     password_confirmation: '',
 });
@@ -105,6 +108,18 @@ const submit = () => {
                             {{ country.name }} {{ country.emoji }}
                         </li>
                     </ul>
+                </div>
+
+                <div class="grid gap-2 md:col-span-2">
+                    <Label for="languages_studied">Languages Studied</Label>
+                    <Select
+                        id="languages_studied"
+                        v-model="form.languages_studied"
+                        :options="languagesStudiedOptions"
+                        placeholder="Select options"
+                        class="mt-1 block"
+                    />
+                    <InputError :message="form.errors.languages_studied" />
                 </div>
 
                 <div class="grid gap-2 md:col-span-2"> <Label for="password">Password</Label>

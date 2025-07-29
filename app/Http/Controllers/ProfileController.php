@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\File;
+use Illuminate\Validation\Rule;
+use App\Models\User;
 
 class ProfileController extends Controller
 {
@@ -25,9 +27,16 @@ class ProfileController extends Controller
             $countriesData = json_decode(File::get($countriesJsonPath), true);
         }
 
+        $languagesStudiedOptions = [
+            ['value' => 'simplified_chinese', 'label' => 'Simplified Chinese'],
+            ['value' => 'traditional_chinese', 'label' => 'Traditional Chinese'],
+            ['value' => 'simplified_and_traditional_chinese', 'label' => 'Simplified and Traditional Chinese'],
+        ];
+
         return Inertia::render('Profile/Edit', [
-            'user' => $request->user()->only('username', 'first_name', 'last_name', 'country', 'city', 'email', 'native_language', 'chinese_level'),
+            'user' => $request->user()->only('username', 'first_name', 'last_name', 'country', 'city', 'email', 'native_language', 'chinese_level', 'languages_studied',),
             'countries' => $countriesData,
+            'languagesStudiedOptions' => $languagesStudiedOptions,
             'status' => session('status'),
         ]);
     }
@@ -39,7 +48,19 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $user->fill($request->validated());
+        $validatedData = $request->validate([
+            'username' => ['required', 'string', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'country' => ['required', 'string', 'max:2'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'native_language' => ['nullable', 'string', 'max:255'],
+            'chinese_level' => ['nullable', 'string', 'max:255'],
+            'languages_studied' => ['nullable', 'string', 'max:55'],
+        ]);
+
+        $user->fill($validatedData);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;

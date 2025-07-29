@@ -28,6 +28,7 @@ class User extends Authenticatable //implements MustVerifyEmail
         'chinese_level',
         'password',
         'last_seen_at',
+        'languages_studied',
     ];
 
     /**

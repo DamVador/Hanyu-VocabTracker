@@ -14,6 +14,7 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\File;
+use Illuminate\Validation\Rule;
 
 class RegisteredUserController extends Controller
 {
@@ -25,12 +26,19 @@ class RegisteredUserController extends Controller
         $countriesJsonPath = base_path('resources/js/data/countriesList.json');
         $countriesData = [];
 
+        $languagesStudiedOptions = [
+            ['value' => 'simplified_chinese', 'label' => 'Simplified Chinese'],
+            ['value' => 'traditional_chinese', 'label' => 'Traditional Chinese'],
+            ['value' => 'simplified_and_traditional_chinese', 'label' => 'Simplified and Traditional Chinese'],
+        ];
+
         if (File::exists($countriesJsonPath)) {
             $countriesData = json_decode(File::get($countriesJsonPath), true);
         }
 
         return Inertia::render('auth/Register', [
             'countries' => $countriesData,
+            'languagesStudiedOptions' => $languagesStudiedOptions,
         ]);
     }
 
@@ -48,6 +56,7 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'country' => ['required', 'string', 'max:2'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'languages_studied' => ['nullable', 'string', 'max:55'],
         ]);
 
         $user = User::create([
@@ -57,6 +66,7 @@ class RegisteredUserController extends Controller
             'country' => $request->country,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'languages_studied' => $request->languages_studied,
         ]);
 
         // TODO - create an observer for users and register it in service provider app/Providers/AppServiceProvider.php
