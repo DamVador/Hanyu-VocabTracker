@@ -8,6 +8,7 @@ import Select from '@/components/Select.vue';
 const props = defineProps({
     user: Object, // User object from Profile/Edit.vue
     countries: Array,
+    languagesStudiedOptions: Array,
 });
 
 const form = useForm({
@@ -19,6 +20,7 @@ const form = useForm({
     city: props.user.city,
     native_language: props.user.native_language,
     chinese_level: props.user.chinese_level,
+    languages_studied: props.user.languages_studied || '',
 });
 
 const verificationLinkSent = ref(false);
@@ -148,6 +150,19 @@ const selectCountry = (country) => {
                 <div v-if="form.errors.native_language" class="text-red-600 text-sm mt-1">
                     {{ form.errors.native_language }}
                 </div>
+            </div>
+
+            <div>
+                <label for="languages_studied" class="block font-medium text-sm text-gray-700">Languages Studied</label>
+                <Select
+                    id="languages_studied"
+                    v-model="form.languages_studied"
+                    :options="languagesStudiedOptions"
+                    placeholder="Select options"
+                    multiple                
+                    class="mt-1 block"
+                />
+                <InputError class="mt-2" :message="form.errors.languages_studied" />
             </div>
 
             <div>

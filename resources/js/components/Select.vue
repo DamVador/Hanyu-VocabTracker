@@ -14,6 +14,10 @@ const props = defineProps({
         type: String,
         default: 'Select an option',
     },
+    multiple: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['update:modelValue']);
