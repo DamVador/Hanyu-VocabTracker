@@ -153,7 +153,7 @@ const selectCountry = (country) => {
             </div>
 
             <div>
-                <label for="languages_studied" class="block font-medium text-sm text-gray-700">Languages Studied</label>
+                <label for="languages_studied" class="block font-medium text-sm text-gray-700">Language Studied</label>
                 <Select
                     id="languages_studied"
                     v-model="form.languages_studied"
