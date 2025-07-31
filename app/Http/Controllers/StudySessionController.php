@@ -15,36 +15,50 @@ class StudySessionController extends Controller
      * Display a listing of the study sessions.
      */
     public function index(Request $request)
-    {
-        $user = $request->user();
+{
+    $user = $request->user();
+    $search = $request->input('search');
 
-        $search = $request->input('search');
+    $query = $user->studySessions();
 
-        $query = $user->studySessions();
-
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
-        }
-
-        $query->orderBy('name', 'asc');
-
-        $studySessions = $query->withCount('words')->get()->map(fn ($session) => [
-            'id' => $session->id,
-            'name' => $session->name,
-            'description' => $session->description,
-            'words_count' => $session->words_count,
-            'created_at' => $session->created_at->format('M d, Y'),
-        ]);
-
-        $studySessions = $query->paginate(10);
-
-        return Inertia::render('StudySessions/Index', [
-            'studySessions' => $studySessions,
-            'filters' => [
-                'search' => $search,
-            ],
-        ]);
+    if ($search) {
+        $query->where('name', 'like', '%' . $search . '%');
     }
+
+    $studySessions = $query->withCount('words')
+        ->with(['words' => function ($wordQuery) use ($user) {
+            $wordQuery->select('words.id');
+
+            $wordQuery->with(['latestHistory' => function ($historyQuery) use ($user) {
+                $historyQuery->where('user_id', $user->id);
+            }]);
+        }])
+        ->orderBy('name', 'asc')
+        ->paginate(10)
+        ->through(function ($session) use ($user) {
+            $revisedWordsCount = $session->words->filter(function ($word) {
+                return optional($word->latestHistory)->learning_status === 'Revise';
+            })->count();
+            
+            $completionPercentage = $session->words_count > 0 
+                                  ? round(($revisedWordsCount / $session->words_count) * 100) 
+                                  : 0;
+
+            return [
+                'id' => $session->id,
+                'name' => $session->name,
+                'description' => $session->description,
+                'words_count' => $session->words_count,
+                'completion_percentage' => $completionPercentage,
+                'created_at' => $session->created_at->format('M d, Y'),
+            ];
+        });
+
+    return Inertia::render('StudySessions/Index', [
+        'studySessions' => $studySessions,
+        'filters' => ['search' => $search],
+    ]);
+}
 
     /**
      * Show the form for creating a new study session.

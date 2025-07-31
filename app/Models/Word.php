@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Word extends Model
 {
@@ -46,5 +47,13 @@ class Word extends Model
     public function studySessions(): BelongsToMany
     {
         return $this->belongsToMany(StudySession::class);
+    }
+
+    /**
+     * Get the latest history entry for the word.
+     */
+    public function latestHistory(): HasOne
+    {
+        return $this->hasOne(History::class)->latestOfMany();
     }
 }

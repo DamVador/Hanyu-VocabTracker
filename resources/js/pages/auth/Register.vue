@@ -111,7 +111,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2 md:col-span-2">
-                    <Label for="languages_studied">Languages Studied</Label>
+                    <Label for="languages_studied">Language Studied</Label>
                     <Select
                         id="languages_studied"
                         v-model="form.languages_studied"

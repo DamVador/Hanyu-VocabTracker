@@ -19,6 +19,7 @@ const form = ref({
 });
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
 watch(() => form.value.search, () => {
     if (searchTimeout) {
         clearTimeout(searchTimeout);
@@ -44,14 +45,27 @@ const applyFilters = () => {
 };
 
 const resetFilters = () => {
-    form.value.search = '';
-    form.value.role = '';
-    applyFilters();
+    router.get(route('admin.users.index'), {
+        search: '',
+        role: '',
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        onFinish: () => {
+            form.value.search = props.filters.search || '';
+            form.value.role = props.filters.role || '';
+
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+                searchTimeout = null;
+            }
+        },
+    });
 };
 </script>
 
 <template>
-
     <Head title="Manage Users" />
 
     <div class="py-12">
