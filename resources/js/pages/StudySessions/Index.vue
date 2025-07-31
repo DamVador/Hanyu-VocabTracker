@@ -50,7 +50,7 @@ const deleteSession = (sessionId: number) => {
     }
 };
 
-const startSessionReview = (sessionId: number, mode: 'all' | 'failed') => {
+const startSessionReview = (sessionId: number, mode: 'all' | 'failed' | 'new') => {
     router.get(route('study.sessionReview', { study_session: sessionId, mode: mode }));
 };
 
@@ -108,6 +108,9 @@ const exportSingleSessionToCsv = (sessionId: number) => {
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Words</th>
                                         <th
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Completion</th>
+                                        <th
                                             class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Actions</th>
                                     </tr>
@@ -125,9 +128,13 @@ const exportSingleSessionToCsv = (sessionId: number) => {
                                             {{ session.words_count }}
                                             </Link>
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ session.completion_percentage }}%
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link :href="route('study-sessions.edit', { study_session: session.id })"
-                                                class="text-indigo-600 hover:text-indigo-900 mr-2">Manage Words</Link>
+                                            <button @click="startSessionReview(session.id, 'new')"
+                                                class="cursor-pointer text-green-600 hover:text-green-900 mr-2"
+                                                :disabled="session.words_count === 0">Study New</button>
                                             <button @click="startSessionReview(session.id, 'all')"
                                                 class="cursor-pointer text-blue-600 hover:text-blue-900 mr-2"
                                                 :disabled="session.words_count === 0">Study All</button>
@@ -156,25 +163,32 @@ const exportSingleSessionToCsv = (sessionId: number) => {
                                             {{ session.description }}
                                         </p>
                                     </div>
-                                    <div class="ml-4 flex-shrink-0">
-                                        <Link
-                                            :href="route('session-studies.words.index', { study_session: session.id })"
-                                            class="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
-                                        {{ session.words_count }} Words &rarr;
-                                        </Link>
+                                    <div class="ml-4 flex-shrink-0 text-right">
+                                        <div class="text-sm font-medium text-gray-900">{{ session.completion_percentage }}%</div>
+                                        <div class="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                                            <div class="h-full bg-indigo-600 rounded-full transition-all duration-300"
+                                                :style="{ width: session.completion_percentage + '%' }">
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+                                <div class="mt-2 text-right">
+                                    <Link
+                                        :href="route('session-studies.words.index', { study_session: session.id })"
+                                        class="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                                        {{ session.words_count }} Words &rarr;
+                                    </Link>
                                 </div>
                                 <div class="flex flex-wrap justify-end gap-2 mt-2">
                                     <Link :href="route('study-sessions.edit', { study_session: session.id })">
-                                        <button
-                                            class="text-indigo-600 hover:text-indigo-900 text-sm py-1 px-2 rounded">Manage
-                                            Words
+                                        <button class="text-indigo-600 hover:text-indigo-900 text-sm py-1 px-2 rounded">
+                                            Manage Words
                                         </button>
                                     </Link>
                                     <button @click="startSessionReview(session.id, 'failed')"
                                         :disabled="session.words_count === 0"
-                                        class="text-blue-600 hover:text-blue-900 text-sm py-1 px-2 rounded">Study
-                                        failed
+                                        class="text-blue-600 hover:text-blue-900 text-sm py-1 px-2 rounded">
+                                        Study failed
                                     </button>
                                     <Dropdown align="right" width="48">
                                         <template #trigger>
@@ -185,6 +199,10 @@ const exportSingleSessionToCsv = (sessionId: number) => {
                                         </template>
 
                                         <template #content>
+                                            <DropdownLink @click="startSessionReview(session.id, 'new')" as="button"
+                                                :disabled="session.words_count === 0">
+                                                Study New
+                                            </DropdownLink>
                                             <DropdownLink @click="startSessionReview(session.id, 'all')" as="button"
                                                 :disabled="session.words_count === 0">
                                                 Study All

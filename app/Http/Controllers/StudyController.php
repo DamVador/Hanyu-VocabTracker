@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 class StudyController extends Controller
 {
@@ -163,7 +164,7 @@ class StudyController extends Controller
             ->shuffle()
             ->values();
 
-        // Limit the number of words per study session (e.g., 20 words)
+        // Limit the number of words per study session
         $wordsForSession = $wordsToReview->take(20);
 
         return $this->transformAndRenderStudyWords($wordsForSession);
@@ -181,58 +182,55 @@ class StudyController extends Controller
         }
 
         $mode = $request->input('mode', 'all');
+        $user = $request->user();
 
-        $wordsQuery = $studySession->words()->with(['tags', 'histories' => function ($query) use ($request) {
-            $query->where('user_id', $request->user()->id);
-        }])->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes'); // Added 'words.notes'
+        $wordsQuery = $studySession->words()
+            ->with(['tags'])
+            ->with(['latestHistory' => function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }])
+            ->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes');
 
-        if ($mode === 'failed') {
-            // Simplified "failed" logic: only include words with history AND total_incorrect_revisions > 0
-             $wordsQuery = $studySession->words()->with(['tags', 'histories' => function ($query) use ($request) {
-                $query->where('user_id', $request->user()->id);
-             }])->whereHas('histories', function ($query) use ($request) {
-                 $query->where('user_id', $request->user()->id)
-                       ->where('total_incorrect_revisions', '>', 0);
-             })->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes'); // Added 'words.notes' here too
+        if ($mode === 'new') {
+            $wordsQuery->whereDoesntHave('histories', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+        } elseif ($mode === 'failed') {
+            $wordsQuery->whereHas('histories', function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->where('learning_status', 'Forgot');
+            });
         }
-
+        
         $wordsForSession = $wordsQuery->get()->shuffle()->values();
 
         return $this->transformAndRenderStudyWords($wordsForSession);
     }
-
     /**
      * Helper method to transform words and render the study Inertia page.
      * This avoids code duplication between autoReviewIndex and sessionReview.
      */
-    protected function transformAndRenderStudyWords($wordsForSession)
+    private function transformAndRenderStudyWords(Collection $words): \Inertia\Response
     {
-        $user = auth()->user();
-
-        $transformedWords = $wordsForSession->map(function ($word) use ($user) {
-            $history = $word->histories->firstWhere('user_id', $user->id);
-
+        $words->transform(function ($word) {
+            $history = optional($word->latestHistory)->toArray();
+            if ($history) {
+                $history['learning_status'] = $history['learning_status'] ?? 'New';
+            }
             return [
                 'id' => $word->id,
                 'chinese_word' => $word->chinese_word,
                 'pinyin' => $word->pinyin,
                 'translation' => $word->translation,
+                'tags' => $word->tags->pluck('name'),
                 'notes' => $word->notes,
-                'tags' => $word->tags->pluck('name')->toArray(),
-                'history' => $history ? [
-                    'last_revision' => $history->last_revision?->format('M d, Y H:i'),
-                    'next_revision' => $history->next_revision?->format('M d, Y H:i'),
-                    'revision_interval' => $history->revision_interval,
-                    'consecutive_correct_revisions' => $history->consecutive_correct_revisions,
-                    'total_incorrect_revisions' => $history->total_incorrect_revisions,
-                    'learning_status' => $history->learning_status,
-                ] : null,
+                'history' => $history,
             ];
-        })->toArray();
+        });
 
         return Inertia::render('Study/Index', [
-            'wordsForSession' => $transformedWords,
-            // 'allTags' => Tag::pluck('name')->toArray(),
+            'wordsForSession' => $words,
+            'allTags' => [],
         ]);
     }
 }
