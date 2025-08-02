@@ -11,6 +11,8 @@ use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\ResourcesListController;
 use App\Http\Controllers\WordImportController;
 use App\Http\Controllers\StudySessionWordController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\WebhookController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -60,6 +62,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/study-sessions/{study_session}/export-csv', [StudySessionController::class, 'exportSingleCsv'])->name('study-sessions.exportSingleCsv');
 
     Route::get('/resources-lists', [ResourcesListController::class, 'index'])->name('resources.lists');
+
+    // Paiement / stripe
+    Route::get('/subscribe', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
+    Route::get('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+    Route::get('/billing-portal', [SubscriptionController::class, 'billingPortal'])->name('billing-portal');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
