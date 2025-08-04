@@ -48,8 +48,8 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
-                    'is_admin' => $request->user()->isAdmin(), // Add this line
-                    'roles' => $request->user()->roles->pluck('name'), // Or this to pass all role names
+                    'is_admin' => $request->user()->isAdmin(),
+                    'roles' => $request->user()->roles->pluck('name'),
                 ] : null,
             ],
             'flash' => [

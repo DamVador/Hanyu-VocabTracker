@@ -11,6 +11,7 @@ use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\ResourcesListController;
 use App\Http\Controllers\WordImportController;
 use App\Http\Controllers\StudySessionWordController;
+use App\Http\Controllers\PostController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -71,6 +72,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
     Route::patch('/admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+});
+
+// blog
+Route::prefix('blog')->name('blog.')->controller(PostController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('create', 'create')->name('create')->middleware(['auth', 'role:admin']);
+    Route::post('/', 'store')->name('store')->middleware(['auth']);
+    Route::get('{post:slug}', 'show')->name('show');
+    Route::get('/blog/{post}/edit', [PostController::class, 'edit'])->name('edit');
+    Route::put('/blog/{post}', [PostController::class, 'update'])->name('update');
 });
 
 require __DIR__.'/settings.php';
