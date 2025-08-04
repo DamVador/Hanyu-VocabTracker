@@ -7,13 +7,13 @@ defineOptions({ layout: AuthenticatedLayout });
 defineProps({
     activeUsersCount: Number,
     totalUsers: Number,
-    newUsersLastTwoWeeks: Number, // New prop
-    totalStudySessions: Number,   // New prop
-    mostPopularTags: Array,       // New prop
-    averageWordsPerUser: Number,  // New prop
-    retention1Week: Number,       // New prop
-    retention1Month: Number,      // New prop
-    topFailedWords: Array,        // New prop
+    newUsersLastTwoWeeks: Number,
+    totalStudySessions: Number,
+    mostPopularTags: Array,
+    averageWordsPerUser: Number,
+    retention1Week: Number,
+    retention1Month: Number,
+    topFailedWords: Array,
 });
 </script>
 
@@ -31,20 +31,25 @@ defineProps({
                 Monitor your application's health and user activity.
             </p>
 
-            <!-- <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto">
                 <div class="text-gray-900">
                     <div class="flex flex-wrap gap-4">
                         <Link :href="route('admin.users.index')"
                             class="inline-flex items-center px-6 py-3 bg-indigo-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
                         Manage Users
-                        </Link> -->
+                        </Link>
                         <!-- TODO WORDS FOR ADMIN -->
                         <!-- <Link :href="route('admin.words.index')" class="inline-flex items-center px-6 py-3 bg-teal-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-teal-700 focus:bg-teal-700 active:bg-teal-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
                             Manage Words
                         </Link> -->
-                    <!-- </div>
+                        <!-- Lien pour créer un nouvel article, visible uniquement par l'admin -->
+                        <Link :href="route('blog.create')"
+                            class="inline-flex items-center px-6 py-3 bg-indigo-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
+                        Create New Post
+                        </Link>
+                    </div>
                 </div>
-            </div> -->
+            </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
