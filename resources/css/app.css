@@ -73,13 +73,13 @@
         margin-bottom: 1em;
     }
     .prose a {
-        color: var(--color-primary);
+        color: var(--color-primary-foreground);
         font-weight: 500;
         text-decoration: underline;
         transition: color 0.2s ease-in-out;
     }
     .prose a:hover {
-        color: var(--color-primary-foreground);
+        color: var(--color-secondary);
     }
     .prose ul, .prose ol {
         margin-left: 1.5em;
