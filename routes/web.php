@@ -60,7 +60,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/words/import-csv', [WordImportController::class, 'importCsv'])->name('words.importCsv');
     Route::get('/study-sessions/{study_session}/export-csv', [StudySessionController::class, 'exportSingleCsv'])->name('study-sessions.exportSingleCsv');
 
-    Route::get('/resources-lists', [ResourcesListController::class, 'index'])->name('resources.lists');
+    // Remove for google safety reasons
+    // Route::get('/resources-lists', [ResourcesListController::class, 'index'])->name('resources.lists');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -80,7 +81,7 @@ Route::prefix('blog')->name('blog.')->controller(PostController::class)->group(f
     Route::get('create', 'create')->name('create')->middleware(['auth', 'role:admin']);
     Route::post('/', 'store')->name('store')->middleware(['auth']);
     Route::get('{post:slug}', 'show')->name('show');
-    Route::get('/blog/{post}/edit', [PostController::class, 'edit'])->name('edit');
+    Route::get('/blog/{post}/edit', [PostController::class, 'edit'])->name('edit')->middleware(['auth', 'role:admin']);
     Route::put('/blog/{post}', [PostController::class, 'update'])->name('update');
 });
 

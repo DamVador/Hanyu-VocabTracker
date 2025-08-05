@@ -253,9 +253,10 @@ class WordController extends Controller
                 'wordsReviewedThisWeek' => $wordsReviewedThisWeek,
                 // 'averageSessionLength' => $averageSessionLength,
                 'currentStreak' => $streak,
-                'features' => [
-                    'vocabListsEnabled' => Config::get('app.features.vocab_lists_enabled'),
-                ],
+                // Remove for google safety reasons
+                // 'features' => [
+                //     'vocabListsEnabled' => Config::get('app.features.vocab_lists_enabled'),
+                // ],
             ]);
     }
 
