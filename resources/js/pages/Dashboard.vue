@@ -121,10 +121,11 @@ const submitCsvImport = () => {
               class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
             Create Study Sessions
             </Link>
-            <Link v-if="props.features.vocabListsEnabled" :href="route('resources.lists')"
+           <!-- Remove for google safety reasons -->
+            <!-- <Link v-if="props.features.vocabListsEnabled" :href="route('resources.lists')"
               class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-600 focus:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
             Download Word Lists
-            </Link>
+            </Link> -->
           </div>
         </div>
       </div>
@@ -253,7 +254,8 @@ const submitCsvImport = () => {
         </div>
       </div>
     </div>
-    <div v-if="props.features.vocabListsEnabled"
+    <!-- Remove for google safety reasons -->
+    <!-- <div v-if="props.features.vocabListsEnabled"
       class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6 p-6 sm:p-8 md:p-10">
       <h3 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">Vocabulary Lists</h3>
       <p class="text-sm text-gray-600 mb-4">
@@ -263,7 +265,7 @@ const submitCsvImport = () => {
         class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-600 focus:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
       Browse All Lists &rarr;
       </Link>
-    </div>
+    </div> -->
 
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
       <div class="p-6 sm:p-8">
