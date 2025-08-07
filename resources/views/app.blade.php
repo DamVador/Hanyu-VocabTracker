@@ -41,6 +41,10 @@
         @routes
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
+
+        @if (config('app.env') !== 'production')
+            <meta name="robots" content="noindex">
+        @endif
     </head>
     <body class="font-sans antialiased">
         @inertia
