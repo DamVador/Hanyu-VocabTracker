@@ -126,4 +126,18 @@ return [
     'features' => [
         'vocab_lists_enabled' => env('FEATURE_VOCAB_LISTS_ENABLED', false),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Production Application URL
+    |--------------------------------------------------------------------------
+    |
+    | This is a custom URL that represents the main, production URL. 
+    | It's used for purposes like SEO (noindex conditional)
+    | to always refer to the definitive production domain, regardless of the
+    | current environment's APP_URL.
+    |
+    */
+    'production_url' => env('PROD_APP_URL', 'http://localhost'),
+
 ];
