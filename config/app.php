@@ -138,6 +138,6 @@ return [
     | current environment's APP_URL.
     |
     */
-    'production_url' => env('PROD_APP_URL', 'http://localhost'),
+    'production_url' => env('PROD_APP_URL', 'https://www.hanyu-vocabtracker.com'),
 
 ];
