@@ -13,6 +13,10 @@ use App\Http\Controllers\WordImportController;
 use App\Http\Controllers\StudySessionWordController;
 use App\Http\Controllers\PostController;
 
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -83,6 +87,20 @@ Route::prefix('blog')->name('blog.')->controller(PostController::class)->group(f
     Route::get('{post:slug}', 'show')->name('show');
     Route::get('/blog/{post}/edit', [PostController::class, 'edit'])->name('edit')->middleware(['auth', 'role:admin']);
     Route::put('/blog/{post}', [PostController::class, 'update'])->name('update');
+});
+
+Route::get('/debug-noindex', function (Request $request) {
+    $currentHost = $request->getHost();
+    $canonicalHost = parse_url(Config::get('app.production_url'), PHP_URL_HOST);
+
+    return "
+        <h1>Debug Noindex</h1>
+        <p>Current Host: <strong>" . htmlspecialchars($currentHost) . "</strong></p>
+        <p>Canonical Host (from .env): <strong>" . htmlspecialchars($canonicalHost) . "</strong></p>
+        <p>Are they equal? " . (($currentHost === $canonicalHost) ? '<strong>YES</strong>' : '<strong>NO</strong>') . "</p>
+        <p>If 'NO', the noindex tag will be present.</p>
+        <p>Remember to remove this route after debugging!</p>
+    ";
 });
 
 require __DIR__.'/settings.php';
