@@ -41,6 +41,15 @@
         @routes
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead
+
+        @php
+            $currentHost = request()->getHost();
+            $productionHost = parse_url(config('app.production_url'), PHP_URL_HOST);
+        @endphp
+
+        @if ($currentHost !== $productionHost)
+            <meta name="robots" content="noindex">
+        @endif
     </head>
     <body class="font-sans antialiased">
         @inertia
