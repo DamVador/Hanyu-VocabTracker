@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Config; 
+use Illuminate\Support\Facades\Redirect;
 
 class WordController extends Controller
 {
@@ -156,12 +157,12 @@ class WordController extends Controller
             $wordsReviewedToday = History::where('user_id', $user->id)
                                          ->whereDate('last_revision', Carbon::today())
                                          ->distinct('word_id')
-                                         ->count('word_id'); // Count distinct word IDs
+                                         ->count('word_id');
     
             $wordsReviewedThisWeek = History::where('user_id', $user->id)
                                             ->where('last_revision', '>=', Carbon::now()->startOfWeek())
                                             ->distinct('word_id')
-                                            ->count('word_id'); // Count distinct word IDs
+                                            ->count('word_id');
     
             // 3. Average Study Session Length -- 
             // TODO - update the DB to add a history for study_sessions with start_date and end_date
@@ -196,20 +197,16 @@ class WordController extends Controller
                 $lastStudyDay = $lastStudyDate->startOfDay();
     
                 if ($lastStudyDay->eq($today)) {
-                    $streak = 1; // At least today counts as 1 if studied
+                    $streak = 1;
                 } elseif ($lastStudyDay->diffInDays($today) === 1 && $lastStudyDay->lt($today)) {
-                    // Studied yesterday, start counting backwards
-                    $streak = 1; // Start with 1 for yesterday
+                    $streak = 1;
                 } else {
-                    // Not studied today or yesterday, streak is 0
                     $streak = 0;
                 }
     
-                // Iterate backwards from the day before last study to count consecutive days
-                // Ensure we don't count today twice if it's already considered
                 $currentDay = $lastStudyDay->copy();
                 if ($lastStudyDay->eq($today)) {
-                    $currentDay->subDay(); // Start counting from yesterday if today was studied
+                    $currentDay->subDay();
                 }
     
                 while ($currentDay->greaterThanOrEqualTo($user->created_at->startOfDay())) {
@@ -253,7 +250,6 @@ class WordController extends Controller
                 'wordsReviewedThisWeek' => $wordsReviewedThisWeek,
                 // 'averageSessionLength' => $averageSessionLength,
                 'currentStreak' => $streak,
-                // Remove for google safety reasons
                 // 'features' => [
                 //     'vocabListsEnabled' => Config::get('app.features.vocab_lists_enabled'),
                 // ],
@@ -262,6 +258,15 @@ class WordController extends Controller
 
     public function create(Request $request)
     {
+        $freeWordLimit = 100;
+        $user = auth()->user();
+        $isPremium = $user && $user->hasRole('premium');
+        $currentWordCount = Word::where('user_id', $user->id)->count();
+
+        if (!$isPremium && $currentWordCount >= $freeWordLimit) {
+            return Redirect::route('subscription.index')->with('error', 'You have reached the word limit for free users. Please upgrade to premium to add more words.');
+        }
+
         $allTags = Tag::pluck('name')->toArray();
         $userStudySessions = $request->user()->studySessions()->select('id', 'name')->get();
         $redirectTo = $request->query('redirect_to');
@@ -282,6 +287,15 @@ class WordController extends Controller
 
     public function save(Request $request)
     {
+        $freeWordLimit = 100;
+        $user = auth()->user();
+        $isPremium = $user && $user->hasRole('premium');
+        $currentWordCount = Word::where('user_id', $user->id)->count();
+
+        if (!$isPremium && $currentWordCount >= $freeWordLimit) {
+            return Redirect::route('subscription.index')->with('error', 'You have reached the word limit for free users. Please upgrade to premium to add more words.');
+        }
+
         $validated = $request->validate([
             'chinese_word' => 'required|string|max:255',
             'pinyin' => 'required|string|max:255',
@@ -433,7 +447,7 @@ class WordController extends Controller
             $history->learning_status = 'Revise'; // TODO - Default status for new words or other status ?
         }
 
-        // TODO  ||--------> UPDATE ALGO, consider the new study session logic <--------
+        // TODO ||--------> UPDATE ALGO, consider the new study session logic <--------
         //       \/
         // --- SRS Logic (Simplified Anki-like algorithm) ---
         if ($isCorrect) {

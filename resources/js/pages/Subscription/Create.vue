@@ -58,19 +58,19 @@ const subscribe = async () => {
                     <ul class="text-left mb-8 space-y-3">
                         <li class="flex items-center text-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            <span>Unlimited Word Dictionary</span>
+                            <span>100 Words Dictionary Limit</span>
                         </li>
                         <li class="flex items-center text-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            <span>Basic Study Sessions</span>
+                            <span>5 Study Sessions Limit</span>
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            <span>Basic Analytics</span>
                         </li>
                         <li class="flex items-center text-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            <span>Advanced Learning Tools</span>
-                        </li>
-                        <li class="flex items-center text-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            <span>Exclusive Content</span>
+                            <span>Detailed Progress Analytics</span>
                         </li>
                     </ul>
 
@@ -102,11 +102,11 @@ const subscribe = async () => {
                         </li>
                         <li class="flex items-center text-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            <span>Advanced Learning Tools</span>
+                            <span>Basic Analytics</span>
                         </li>
                         <li class="flex items-center text-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                            <span>Exclusive & Ad-Free Content</span>
+                            <span>Detailed Progress Analytics</span>
                         </li>
                     </ul>
                     
