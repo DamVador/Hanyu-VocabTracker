@@ -17,9 +17,29 @@ class WordImportController extends Controller
     {
         $file = $request->file('csv_file');
         $path = $file->getRealPath();
-        $data = array_map('str_getcsv', file($path));
 
-        $header = array_map('trim', array_shift($data));
+        $lines = file($path);
+        if (empty($lines)) {
+            return Inertia::render('Dashboard', [
+                'errors' => ['general' => "The CSV file is empty."],
+            ])->toResponse($request)->setStatusCode(422);
+        }
+
+        $firstLine = array_shift($lines);
+        
+        $commaCount = substr_count($firstLine, ',');
+        $semicolonCount = substr_count($firstLine, ';');
+
+        $delimiter = ',';
+        if ($semicolonCount > $commaCount) {
+            $delimiter = ';';
+        } elseif ($semicolonCount > 0 && $commaCount === 0) {
+            $delimiter = ';';
+        }
+
+        $header = array_map(function($item) {
+            return strtolower(trim($item));
+        }, str_getcsv($firstLine, $delimiter));
 
         $expectedHeaders = [
             'chinese_character' => true,
@@ -43,7 +63,9 @@ class WordImportController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($data as $rowNum => $row) {
+            foreach ($lines as $rowNum => $line) {
+                $row = str_getcsv($line, $delimiter);
+
                 if (empty(array_filter($row))) {
                     $skippedRows++;
                     continue;
@@ -54,7 +76,13 @@ class WordImportController extends Controller
                     $rowData[$colName] = $row[$index] ?? null;
                 }
 
-                if (empty($rowData['chinese_character']) || empty($rowData['pinyin']) || empty($rowData['translation'])) {
+                $chineseCharacter = $rowData['chinese_character'] ?? null;
+                $pinyin = $rowData['pinyin'] ?? null;
+                $translation = $rowData['translation'] ?? null;
+                $studySessionName = $rowData['study_session_name'] ?? null;
+                $tags = $rowData['tags'] ?? null;
+
+                if (empty($chineseCharacter) || empty($pinyin) || empty($translation)) {
                     $errors[] = "Row " . ($rowNum + 2 - $skippedRows) . ": Missing required word data (chinese_character, pinyin, or translation).";
                     continue;
                 }
@@ -62,31 +90,24 @@ class WordImportController extends Controller
                 $word = Word::firstOrCreate(
                     [
                         'user_id' => auth()->id(),
-                        'chinese_word' => $rowData['chinese_character'],
+                        'chinese_word' => $chineseCharacter,
                     ],
                     [
-                        'pinyin' => $rowData['pinyin'],
-                        'translation' => $rowData['translation'],
-                        // Add other default word properties here if needed for new creation
+                        'pinyin' => $pinyin,
+                        'translation' => $translation,
                     ]
                 );
-                if ($word->wasRecentlyCreated) {
-                    $word->pinyin = $rowData['pinyin'];
-                    $word->translation = $rowData['translation'];
-                    $word->save();
-                }
 
-                // --- Handle Study Session (existing logic) ---
-                if (!empty($rowData['study_session_name'])) {
-                    $sessionName = trim($rowData['study_session_name']);
-                    if (!empty($sessionName)) {
+                if (!empty($studySessionName)) {
+                    $sessionNameTrimmed = trim($studySessionName);
+                    if (!empty($sessionNameTrimmed)) {
                         $studySession = StudySession::firstOrCreate(
                             [
                                 'user_id' => auth()->id(),
-                                'name' => $sessionName,
+                                'name' => $sessionNameTrimmed,
                             ],
                             [
-                                'description' => "Session created from CSV import: {$sessionName}",
+                                'description' => "Session created from CSV import: {$sessionNameTrimmed}",
                             ]
                         );
 
@@ -94,8 +115,8 @@ class WordImportController extends Controller
                     }
                 }
 
-                if (!empty($rowData['tags'])) {
-                    $tagNames = explode(',', $rowData['tags']);
+                if (!empty($tags)) {
+                    $tagNames = explode(',', $tags);
                     $tagNames = array_map('trim', $tagNames);
                     $tagNames = array_filter($tagNames);
 
