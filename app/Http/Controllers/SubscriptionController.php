@@ -11,6 +11,7 @@ use Stripe\StripeClient;
 use Stripe\Stripe;
 use Stripe\BillingPortal\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class SubscriptionController extends Controller
 {
@@ -20,11 +21,6 @@ class SubscriptionController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
     }
     
-    /**
-     * Affiche la page des abonnements avec le statut actuel de l'utilisateur.
-     * Cette méthode remplace 'create' pour être plus sémantique.
-     * Assurez-vous de mettre à jour votre route web en conséquence.
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -55,7 +51,13 @@ class SubscriptionController extends Controller
             $user->roles()->sync([$premiumRole->id]);
         }
 
-        return Inertia::render('Subscription/Success');
+        return Inertia::render('Subscription/Success', [
+            'auth' => [
+                'user' => array_merge(Auth::user()->toArray(), [
+                    'is_premium' => true,
+                ])
+            ]
+        ]);
     }
 
     public function cancel()

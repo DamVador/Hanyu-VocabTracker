@@ -95,5 +95,5 @@ Route::prefix('blog')->name('blog.')->controller(PostController::class)->group(f
     Route::put('/blog/{post}', [PostController::class, 'update'])->name('update');
 });
 
-require __DIR__.'/settings.php';
+// require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

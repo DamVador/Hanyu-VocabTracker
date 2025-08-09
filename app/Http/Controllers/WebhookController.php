@@ -14,7 +14,7 @@ use Stripe\Exception\SignatureVerificationException;
 class WebhookController extends Controller
 {
     /**
-     * Gère les événements de webhook Stripe.
+     * Webhook Stripe.
      */
     public function handle(Request $request)
     {

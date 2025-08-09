@@ -14,7 +14,7 @@ const toggleNavDropdown = () => {
 
 const navLinks = [
     { name: 'Dashboard', route: 'dashboard', requiresAuth: true },
-    { name: 'Profile', route: 'profile.edit', requiresAuth: true },
+    { name: 'Profile', route: 'Profile.edit', requiresAuth: true },
     { name: 'Admin', route: 'admin.dashboard', requiresAuth: true, requiresAdmin: true },
     { name: 'Register', route: 'register', requiresAuth: false, isBordered: true },
 ];
