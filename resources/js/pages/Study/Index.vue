@@ -27,6 +27,9 @@ const wordDrawings = ref<Record<number, string>>({});
 const wordNotes = ref<Record<number, string>>({});
 
 const currentWord = computed(() => {
+    if (!props.wordsForSession || props.wordsForSession.length === 0) {
+        return null;
+    }
     return props.wordsForSession[currentWordIndex.value];
 });
 
@@ -46,7 +49,7 @@ const progress = computed(() => {
 const recordWordStudy = async (wordId, correct) => {
     if (sessionComplete.value) return;
     if (!hasAnswerBeenShown.value) {
-        alert('Please reveal the answer before marking as Correct or Incorrect.');
+        console.warn('Please reveal the answer before marking as Correct or Incorrect.');
         return;
     }
 
@@ -59,7 +62,7 @@ const recordWordStudy = async (wordId, correct) => {
         goToNextWord();
     } catch (error) {
         console.error('Error recording study:', error);
-        alert('Failed to record study progress.');
+        console.error('Failed to record study progress.');
         goToNextWord();
     }
 };
@@ -122,11 +125,11 @@ const saveNotesForWord = (notesContent: string) => {
         wordNotes.value[currentWord.value.id] = notesContent;
         axios.post(route('words.saveNotes', currentWord.value.id), { notes: notesContent })
             .then(response => {
-                // Optionnel: Mettre à jour l'historique ou d'autres données si le backend renvoie des informations
+                // Optional: Update history or other data if backend returns information
             })
             .catch(error => {
                 console.error('Error saving notes:', error);
-                alert('Failed to save notes.');
+                console.error('Failed to save notes.');
             });
     }
 };
@@ -221,15 +224,15 @@ const saveNotesForWord = (notesContent: string) => {
                                     <div v-if="!showAnswer">
                                         <div v-if="initialDisplayMode === 'chinese'"
                                             class="text-5xl font-bold text-gray-800 mb-4">
-                                            {{ currentWord.chinese_word }}
+                                            {{ currentWord?.chinese_word }}
                                         </div>
                                         <div v-else-if="initialDisplayMode === 'pinyin'"
                                             class="text-5xl font-bold text-gray-800 mb-4">
-                                            {{ currentWord.pinyin }}
+                                            {{ currentWord?.pinyin }}
                                         </div>
                                         <div v-else-if="initialDisplayMode === 'translation'"
                                             class="text-5xl font-bold text-gray-800 mb-4">
-                                            {{ currentWord.translation }}
+                                            {{ currentWord?.translation }}
                                         </div>
                                         <div v-else class="text-xl text-gray-600 mb-4">
                                             Please select an initial display mode.
@@ -237,12 +240,19 @@ const saveNotesForWord = (notesContent: string) => {
                                     </div>
 
                                     <div v-else class="w-full">
-                                        <div class="text-5xl font-bold text-gray-800 mb-2">{{ currentWord.chinese_word
+                                        <div class="text-5xl font-bold text-gray-800 mb-2">{{ currentWord?.chinese_word
                                             }}</div>
-                                        <div class="text-xl text-gray-600 mb-2">{{ currentWord.pinyin }}</div>
+                                        <div class="text-xl text-gray-600 mb-2">{{ currentWord?.pinyin }}</div>
                                         <div class="mt-4 text-2xl font-semibold text-indigo-700">{{
-                                            currentWord.translation }}</div>
+                                            currentWord?.translation }}</div>
                                     </div>
+                                </div>
+
+                                <div v-if="currentWord?.tags && currentWord.tags.length > 0" class="mt-4 mb-4 flex flex-wrap justify-center gap-2">
+                                    <span v-for="(tag, index) in currentWord.tags.slice(0, 3)" :key="tag.id"
+                                            class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
+                                        {{ tag }}
+                                    </span>
                                 </div>
 
                                 <button @click="toggleShowAnswer()"
