@@ -78,37 +78,27 @@ class StatisticsController extends Controller
     {
         try {
             $user = $request->user();
-            $latestHistories = History::select('word_id', 'learning_status')
-                ->where('user_id', $user->id)
-                ->whereRaw('histories.id = (SELECT MAX(id) FROM histories WHERE word_id = histories.word_id AND user_id = ?)', [$user->id])
-                ->get();
 
-            $statusCounts = [
-                'New' => 0,
-                'Revise' => 0,
-                'Forgot' => 0,
-                'Mastered' => 0,
-            ];
-
-            foreach ($latestHistories as $history) {
-                if (array_key_exists($history->learning_status, $statusCounts)) {
-                    $statusCounts[$history->learning_status]++;
-                }
-            }
-
+            $newWords = 0;
             $wordsWithNoHistoryCount = Word::where('user_id', $user->id)
                 ->whereDoesntHave('histories', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
                 })
                 ->count();
             
-            $statusCounts['New'] += $wordsWithNoHistoryCount;
+            $newWords += $wordsWithNoHistoryCount;
+
+            $wordsDueForReview = History::where('user_id', $user->id)
+                                        ->where('next_revision', '<=', Carbon::now())
+                                        ->count();
+            $wordsForgotten = History::where('user_id', $user->id)
+                                        ->where('learning_status', 'Forgot')
+                                        ->count();
 
             return response()->json([
-                'new' => $statusCounts['New'],
-                'revise' => $statusCounts['Revise'],
-                'forgot' => $statusCounts['Forgot'],
-                'mastered' => $statusCounts['Mastered'],
+                'new' => $newWords,
+                'revise' => $wordsDueForReview,
+                'forgot' => $wordsForgotten,
             ]);
         } catch (\Exception $e) {
             Log::error('Error fetching learning status distribution: ' . $e->getMessage(), ['exception' => $e]);
