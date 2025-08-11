@@ -221,6 +221,30 @@ class WordController extends Controller
                     $currentDay->subDay();
                 }
             }
+
+            $longestStreak = 0;
+            $studyDates = History::where('user_id', $user->id)
+                                ->selectRaw('DATE(last_revision) as study_date')
+                                ->distinct()
+                                ->orderBy('study_date')
+                                ->get()
+                                ->pluck('study_date')
+                                ->map(fn ($date) => Carbon::parse($date));
+
+            $tempCurrentStreak = 0;
+            $previousDate = null;
+
+            foreach ($studyDates as $date) {
+                if ($previousDate === null) {
+                    $tempCurrentStreak = 1;
+                } elseif ($date->eq($previousDate->copy()->addDay())) {
+                    $tempCurrentStreak++;
+                } else {
+                    $tempCurrentStreak = 1;
+                }
+                $longestStreak = max($longestStreak, $tempCurrentStreak);
+                $previousDate = $date;
+            }
     
             $totalWords = Word::where('user_id', $user->id)->count();
     
@@ -250,6 +274,8 @@ class WordController extends Controller
                 'wordsReviewedThisWeek' => $wordsReviewedThisWeek,
                 // 'averageSessionLength' => $averageSessionLength,
                 'currentStreak' => $streak,
+                'longestStreak' => $longestStreak,
+                // Remove for google safety reasons
                 // 'features' => [
                 //     'vocabListsEnabled' => Config::get('app.features.vocab_lists_enabled'),
                 // ],

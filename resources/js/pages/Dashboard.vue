@@ -15,6 +15,7 @@ const props = defineProps({
   wordsReviewedThisWeek: Number,
   averageSessionLength: String,
   currentStreak: Number,
+  longestStreak: Number,
   features: Object,
 });
 
@@ -125,7 +126,7 @@ const submitCsvImport = () => {
               class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
             Create Study Sessions
             </Link>
-           <!-- Remove for google safety reasons -->
+            <!-- Remove for google safety reasons -->
             <!-- <Link v-if="props.features.vocabListsEnabled" :href="route('resources.lists')"
               class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-600 focus:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition ease-in-out duration-150 text-xs">
             Download Word Lists
@@ -139,12 +140,12 @@ const submitCsvImport = () => {
 
       <div class="flex flex-col gap-6 lg:order-1">
         <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm h-full">
-          <div class="flex justify-between items-center mb-2">
-              <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Study Progress</h3>
-              <Link v-if="isPremium" :href="route('statistics.index')"
-                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
-                Access Analytics
-              </Link>
+          <div class="flex justify-between items-center mb-2"> <!-- Added flex container -->
+            <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Study Progress</h3>
+            <Link :href="route('statistics.index')"
+              class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
+            <span class="sr-only sm:not-sr-only sm:mr-1">Access</span> Analytics
+            </Link>
           </div>
           <p class="text-sm text-gray-600 mb-6">
             Dive into your personalized review sessions (automatic study sessions) or manage your custom study sets.
@@ -173,10 +174,18 @@ const submitCsvImport = () => {
               </div>
             </div>
 
-            <div class="bg-gray-50 p-4 rounded-md flex items-center justify-between col-span-1 sm:col-span-2">
+            <div class="bg-gray-50 p-4 rounded-md flex items-center justify-between col-span-1">
               <div>
                 <p class="text-sm font-medium text-gray-500">Current Study Streak</p>
                 <p class="text-2xl font-bold text-orange-600">{{ currentStreak }} <span
+                    class="text-base text-gray-500">days</span></p>
+              </div>
+              <span class="text-3xl text-orange-400">🔥</span>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-md flex items-center justify-between col-span-1">
+              <div>
+                <p class="text-sm font-medium text-gray-500">Longest Study Streak</p>
+                <p class="text-2xl font-bold text-orange-600">{{ longestStreak }} <span
                     class="text-base text-gray-500">days</span></p>
               </div>
               <span class="text-3xl text-orange-400">🔥</span>
@@ -185,12 +194,12 @@ const submitCsvImport = () => {
 
           <div class="flex flex-wrap gap-4">
             <Link :href="route('study.index')"
-              class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
-            Start Automatic Study Session
+              class="inline-flex items-center justify-center px-4 py-2 w-full sm:w-auto min-w-[200px] bg-blue-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 text-xs sm:text-sm whitespace-nowrap">
+            Start Auto Study Session
             </Link>
             <Link :href="route('study-sessions.index')"
-              class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
-            Manage Study Sessions
+              class="inline-flex items-center justify-center px-4 py-2 w-full sm:w-auto min-w-[200px] bg-purple-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150 text-xs sm:text-sm whitespace-nowrap">
+            Manage Sessions
             </Link>
           </div>
         </div>
