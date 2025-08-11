@@ -14,6 +14,7 @@ use App\Http\Controllers\StudySessionWordController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\StatisticsController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -72,6 +73,9 @@ Route::middleware('auth')->group(function () {
 
     // Remove for google safety reasons
     // Route::get('/resources-lists', [ResourcesListController::class, 'index'])->name('resources.lists');
+
+    // Statistics Page (initially without premium restriction, as requested)
+    Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
 });
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -97,3 +101,4 @@ Route::prefix('blog')->name('blog.')->controller(PostController::class)->group(f
 
 // require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+require __DIR__.'/api.php';
