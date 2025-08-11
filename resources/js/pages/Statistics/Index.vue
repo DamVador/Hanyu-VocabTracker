@@ -58,9 +58,9 @@ const charts = ref({
     ]
   },
   learningStatus: {
-    labels: ['New', 'Revise', 'Forgot', 'Mastered'],
+    labels: ['New', 'Revise', 'Forgot'],
     datasets: [{
-      backgroundColor: ['#6366f1', '#fcd34d', '#ef4444', '#22c55e'],
+      backgroundColor: ['#6366f1', '#fcd34d', '#ef4444'],
       data: [] as number[],
     }]
   },
@@ -187,7 +187,7 @@ onMounted(async () => {
       learningStatusData.new || 0,
       learningStatusData.revise || 0,
       learningStatusData.forgot || 0,
-      learningStatusData.mastered || 0
+    //   learningStatusData.mastered || 0
     ];
 
     // Accuracy Rate
