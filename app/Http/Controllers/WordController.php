@@ -240,7 +240,7 @@ class WordController extends Controller
             foreach ($studyDates as $date) {
                 if ($previousDate === null) {
                     $tempCurrentStreak = 1;
-                } elseif ($date->diffInDays($previousDate) === 1) {
+                } elseif ($date->eq($previousDate->copy()->addDay())) {
                     $tempCurrentStreak++;
                 } else {
                     $tempCurrentStreak = 1;
