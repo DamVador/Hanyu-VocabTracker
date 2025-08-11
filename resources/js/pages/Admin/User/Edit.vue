@@ -2,7 +2,7 @@
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import Input from '@/components/Input.vue';
-import { ref, computed } from 'vue'; // Importez ref et computed
+import { ref, computed } from 'vue';
 import Select from '@/components/Select.vue';
 
 defineOptions({ layout: AuthenticatedLayout });
@@ -61,7 +61,7 @@ const filteredCountries = computed(() => {
     const lowerCaseSearchTerm = countrySearchTerm.value.toLowerCase();
     return props.countries.filter(country =>
         country.name.toLowerCase().includes(lowerCaseSearchTerm)
-    ).slice(0, 8); // Limitez les suggestions pour la performance
+    ).slice(0, 8);
 });
 
 const handleCountryInputBlur = () => {
@@ -111,7 +111,6 @@ const selectCountry = (country) => {
                                 v-model="form.first_name"
                                 type="text"
                                 class="mt-1"
-                                required
                             />
                             <div v-if="form.errors.first_name" class="text-red-600 text-sm mt-1">
                                 {{ form.errors.first_name }}
@@ -125,7 +124,6 @@ const selectCountry = (country) => {
                                 v-model="form.last_name"
                                 type="text"
                                 class="mt-1"
-                                required
                             />
                             <div v-if="form.errors.last_name" class="text-red-600 text-sm mt-1">
                                 {{ form.errors.last_name }}
@@ -181,13 +179,11 @@ const selectCountry = (country) => {
                                 v-model="form.city"
                                 type="text"
                                 class="mt-1"
-                                required
                             />
                             <div v-if="form.errors.city" class="text-red-600 text-sm mt-1">
                                 {{ form.errors.city }}
                             </div>
                         </div>
-
 
                         <div>
                             <label class="block font-medium text-sm text-gray-700 mb-2">User Roles</label>
