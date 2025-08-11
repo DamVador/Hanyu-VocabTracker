@@ -9,6 +9,7 @@ use App\Models\History;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
 
 class StatisticsController extends Controller
 {
@@ -17,6 +18,13 @@ class StatisticsController extends Controller
      */
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $isPremium = $user && $user->hasRole('premium');
+
+        if (!$isPremium) {
+            return Redirect::route('dashboard')->with('error', 'Please upgrade to premium to access the analytics feature.');
+        }
+
         return Inertia::render('Statistics/Index');
     }
 

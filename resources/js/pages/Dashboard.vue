@@ -18,6 +18,10 @@ const props = defineProps({
   features: Object,
 });
 
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const isPremium = computed(() => user.value?.is_premium ?? false);
+
 const showWordsAddedThisMonth = ref(false);
 const wordsAddedDisplay = computed(() => {
   return showWordsAddedThisMonth.value ? props.wordsAddedThisMonth : props.wordsAddedThisWeek;
@@ -135,11 +139,11 @@ const submitCsvImport = () => {
 
       <div class="flex flex-col gap-6 lg:order-1">
         <div class="bg-white p-6 sm:p-8 rounded-lg shadow-sm h-full">
-          <div class="flex justify-between items-center mb-2"> <!-- Added flex container -->
+          <div class="flex justify-between items-center mb-2">
               <h3 class="text-xl sm:text-2xl font-semibold text-gray-800">Study Progress</h3>
-              <Link :href="route('statistics.index')"
+              <Link v-if="isPremium" :href="route('statistics.index')"
                 class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-white uppercase tracking-wider hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150 text-sm">
-              Access Analytics
+                Access Analytics
               </Link>
           </div>
           <p class="text-sm text-gray-600 mb-6">
