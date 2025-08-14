@@ -38,7 +38,7 @@ const currentWordDrawing = computed(() => {
 });
 
 const currentWordNotes = computed(() => {
-    return wordNotes.value[currentWord.value?.id] || '';
+    return currentWord.value.notes || '';
 });
 
 const progress = computed(() => {
@@ -122,7 +122,7 @@ const closeNotesModal = () => {
 
 const saveNotesForWord = (notesContent: string) => {
     if (currentWord.value) {
-        wordNotes.value[currentWord.value.id] = notesContent;
+        currentWord.value.notes = notesContent;
         axios.post(route('words.saveNotes', currentWord.value.id), { notes: notesContent })
             .then(response => {
                 // Optional: Update history or other data if backend returns information

@@ -12,6 +12,10 @@ const props = defineProps({
     currentTags: Array,
     userStudySessions: Array,
     attachedStudySessionIds: Array,
+    redirect_to: {
+        type: String,
+        default: () => window.route('words.index'),
+    },
 });
 
 const form = useForm({
@@ -19,6 +23,7 @@ const form = useForm({
     pinyin: props.word.pinyin,
     translation: props.word.translation,
     notes: props.word.notes || '',
+    _redirect_to: props.redirect_to,
     tags: props.currentTags || [],
     study_session_ids: props.attachedStudySessionIds || [],
 });
