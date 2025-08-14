@@ -356,6 +356,7 @@ class WordController extends Controller
 
         $word->load('tags');
         $allTags = Tag::pluck('name')->toArray();
+        $redirectTo = $request->query('redirect_to');
 
         $userStudySessions = $request->user()->studySessions()->select('id', 'name')->get();
 
@@ -373,6 +374,7 @@ class WordController extends Controller
             'allTags' => $allTags,
             'userStudySessions' => $userStudySessions,
             'attachedStudySessionIds' => $attachedStudySessionIds,
+            'redirect_to' => $redirectTo,
         ]);
     }
 
@@ -394,6 +396,7 @@ class WordController extends Controller
             'tags.*' => 'string|max:255',
             'study_session_ids' => 'nullable|array',
             'study_session_ids.*' => 'exists:study_sessions,id',
+            '_redirect_to' => 'nullable|url',
         ]);
 
         $word->update([
@@ -416,7 +419,13 @@ class WordController extends Controller
 
         $word->studySessions()->sync($validated['study_session_ids'] ?? []);
 
-        return redirect()->route('words.index')->with('success', 'Word updated successfully!');
+        $redirectTo = $validated['_redirect_to'] ?? null;
+
+        if ($redirectTo) {
+            return redirect($redirectTo)->with('success', 'Word updated successfully!');
+        } else {
+            return redirect()->route('words.index')->with('success', 'Word updated successfully!');
+        }
     }
 
     public function destroy(Word $word)

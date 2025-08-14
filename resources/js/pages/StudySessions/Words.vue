@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted, computed, defineProps } from 'vue';
 import TextInput from '@/components/Input.vue';
 import Select from '@/components/Select.vue';
 import Pagination from '@/components/Pagination.vue';
@@ -16,6 +16,19 @@ const props = defineProps({
     allStatuses: Array,
 });
 
+console.log('Props received in StudySessions/Words.vue:', props);
+console.log('studySession prop value:', props.studySession);
+console.log('studySession ID:', props.studySession?.id);
+
+const redirectToUrl = computed(() => {
+    if (props.studySession?.id) {
+        const url = route('session-studies.words.index', { study_session: props.studySession.id });
+        console.log('Generated redirect URL:', url);
+        return url;
+    }
+    console.log('studySession ID is null or undefined, redirect URL will be null.');
+    return null;
+});
 const pinyinFilter = ref(props.filters.pinyin || '');
 const translationFilter = ref(props.filters.translation || '');
 const sortBy = ref(props.filters.sort_by || 'failure_count');
@@ -116,6 +129,7 @@ const handleDeleteWord = (wordId: number) => {
 </script>
 
 <template>
+
     <Head :title="`Words from ${props.studySession?.name || 'Loading...'}`" />
 
     <div class="py-12">
@@ -127,14 +141,14 @@ const handleDeleteWord = (wordId: number) => {
                             Words from "{{ props.studySession?.name || 'Loading...' }}"
                         </h2>
                         <div class="flex flex-col sm:flex-row sm:gap-4 gap-2">
-                            <Link :href="route('words.create', { 
-                                    redirect_to: route('session-studies.words.index', { study_session: props.studySession?.id }),
-                                    prefill_study_session_id: props.studySession?.id
+                            <Link :href="route('words.create', {
+                                redirect_to: route('session-studies.words.index', { study_session: props.studySession?.id }),
+                                prefill_study_session_id: props.studySession?.id
                             })">
-                                <PrimaryButton class="w-full sm:w-auto">Add New Word</PrimaryButton>
+                            <PrimaryButton class="w-full sm:w-auto">Add New Word</PrimaryButton>
                             </Link>
                             <Link :href="route('study-sessions.index')">
-                                <PrimaryButton class="w-full sm:w-auto">Back to Sessions</PrimaryButton>
+                            <PrimaryButton class="w-full sm:w-auto">Back to Sessions</PrimaryButton>
                             </Link>
                         </div>
                     </div>
@@ -220,14 +234,17 @@ const handleDeleteWord = (wordId: number) => {
                                             sWord.chinese_word }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.pinyin }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.translation
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                                            sWord.translation
                                             }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sWord.failure_count
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                                            sWord.failure_count
                                             }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
                                             sWord.learning_status }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link :href="route('words.edit', { word: sWord.id })"
+                                            <Link
+                                                :href="route('words.edit', { word: sWord.id, redirect_to: route('session-studies.words.index', { study_session: props.studySession?.id }) })"
                                                 class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</Link>
                                             <button @click="handleDeleteWord(sWord.id)"
                                                 class="text-red-600 hover:text-red-900">Remove</button>
@@ -261,10 +278,12 @@ const handleDeleteWord = (wordId: number) => {
                                         class="px-2 py-0.5 bg-gray-200 rounded-full text-xs font-medium text-gray-700">
                                         {{ tag }}
                                     </span>
-                                    <span v-if="(sWord.tags ?? []).length === 0" class="text-gray-400 text-xs italic">No tags</span>
+                                    <span v-if="(sWord.tags ?? []).length === 0" class="text-gray-400 text-xs italic">No
+                                        tags</span>
                                 </div>
                                 <div class="flex justify-end gap-3 mt-2">
-                                    <Link :href="route('words.edit', { word: sWord.id })"
+                                    <Link
+                                        :href="route('words.edit', { word: sWord.id, redirect_to: route('session-studies.words.index', { study_session: props.studySession?.id }) })"
                                         class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Edit</Link>
                                     <button @click="handleDeleteWord(sWord.id)"
                                         class="text-red-600 hover:text-red-900 text-sm font-medium">Remove</button>
