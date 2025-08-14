@@ -33,15 +33,25 @@ class WordController extends Controller
         $query = Word::query();
         $query->select('words.*');
 
-        $latestHistorySubquery = History::select('word_id', 'learning_status', 'created_at')
+        $latestRevisionSummary = History::select(
+                'word_id',
+                DB::raw('MAX(last_revision) AS max_last_revision'),
+                DB::raw('MAX(id) AS max_id_for_latest_revision')
+            )
             ->where('user_id', $user->id)
-            ->whereRaw('histories.id = (SELECT MAX(id) FROM histories WHERE word_id = histories.word_id AND user_id = ?)', [$user->id]);
+            ->groupBy('word_id');
 
-        $query->leftJoinSub($latestHistorySubquery, 'latest_word_history', function ($join) {
-            $join->on('words.id', '=', 'latest_word_history.word_id');
+        $query->leftJoinSub($latestRevisionSummary, 'lrs', function ($join) {
+            $join->on('words.id', '=', 'lrs.word_id');
         })
-        ->addSelect('latest_word_history.learning_status as current_learning_status')
-        ->addSelect('latest_word_history.created_at as latest_revision_created_at'); // Ajout de la date pour le tri et l'affichage
+        ->leftJoin('histories', function ($join) use ($user) {
+            $join->on('histories.word_id', '=', 'lrs.word_id')
+                 ->on('histories.last_revision', '=', 'lrs.max_last_revision')
+                 ->on('histories.id', '=', 'lrs.max_id_for_latest_revision')
+                 ->where('histories.user_id', '=', $user->id);
+        })
+        ->addSelect('histories.learning_status as current_learning_status')
+        ->addSelect('histories.last_revision as latest_revision_created_at');
 
         $query->where(function ($q) use ($user, $searchPinyin, $searchTranslation, $tag, $selectedLearningStatuses) {
             $q->where('words.user_id', $user->id);
@@ -61,10 +71,10 @@ class WordController extends Controller
 
             if (!empty($selectedLearningStatuses)) {
                 $q->where(function ($statusQuery) use ($selectedLearningStatuses) {
-                    $statusQuery->whereIn('latest_word_history.learning_status', $selectedLearningStatuses);
+                    $statusQuery->whereIn('histories.learning_status', $selectedLearningStatuses);
 
                     if (in_array('New', $selectedLearningStatuses)) {
-                        $statusQuery->orWhereNull('latest_word_history.learning_status');
+                        $statusQuery->orWhereNull('histories.learning_status');
                     }
                 });
             }
