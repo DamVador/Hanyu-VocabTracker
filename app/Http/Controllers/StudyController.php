@@ -191,7 +191,9 @@ class StudyController extends Controller
             }])
             ->select('words.id', 'words.chinese_word', 'words.pinyin', 'words.translation', 'words.notes');
 
-        if ($mode === 'new') {
+        if ($mode === 'auto') {
+            $wordsQuery->inRandomOrder()->limit(20);
+        } elseif ($mode === 'new') {
             $wordsQuery->whereDoesntHave('histories', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             });
