@@ -16,17 +16,11 @@ const props = defineProps({
     allStatuses: Array,
 });
 
-console.log('Props received in StudySessions/Words.vue:', props);
-console.log('studySession prop value:', props.studySession);
-console.log('studySession ID:', props.studySession?.id);
-
 const redirectToUrl = computed(() => {
     if (props.studySession?.id) {
         const url = route('session-studies.words.index', { study_session: props.studySession.id });
-        console.log('Generated redirect URL:', url);
         return url;
     }
-    console.log('studySession ID is null or undefined, redirect URL will be null.');
     return null;
 });
 const pinyinFilter = ref(props.filters.pinyin || '');

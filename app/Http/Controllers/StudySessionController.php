@@ -208,17 +208,20 @@ class StudySessionController extends Controller
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // Define the CSV header
-            fputcsv($file, ['chinese_character', 'pinyin', 'translation', 'study_session_name']);
+            fputcsv($file, ['chinese_character', 'pinyin', 'translation', 'study_session_name', 'tags', 'notes']);
 
             foreach ($sessions as $session) {
                 $session->loadMissing('words');
 
                 foreach ($session->words as $word) {
+                    $tags = $word->tags->pluck('name')->implode(', ');
                     fputcsv($file, [
                         $word->chinese_word,
                         $word->pinyin,
                         $word->translation,
                         $session->name,
+                        $tags,
+                        $word->notes,
                     ]);
                 }
             }
