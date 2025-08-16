@@ -18,7 +18,10 @@ class WordImportController extends Controller
         $file = $request->file('csv_file');
         $path = $file->getRealPath();
 
-        $lines = file($path);
+        $content = file_get_contents($path);
+        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content); // remove BOM
+        $lines = explode("\n", $content);
+
         if (empty($lines)) {
             return Inertia::render('Dashboard', [
                 'errors' => ['general' => "The CSV file is empty."],
@@ -26,20 +29,23 @@ class WordImportController extends Controller
         }
 
         $firstLine = array_shift($lines);
-        
-        $commaCount = substr_count($firstLine, ',');
-        $semicolonCount = substr_count($firstLine, ';');
+        $firstLine = trim($firstLine);
+
+        // $commaCount = substr_count($firstLine, ',');
+        // $semicolonCount = substr_count($firstLine, ';');
 
         $delimiter = ',';
-        if ($semicolonCount > $commaCount) {
+        if (strpos($firstLine, ';') !== false && strpos($firstLine, ',') === false) {
             $delimiter = ';';
-        } elseif ($semicolonCount > 0 && $commaCount === 0) {
+        } elseif (substr_count($firstLine, ';') > substr_count($firstLine, ',')) {
             $delimiter = ';';
         }
 
+        $header = str_getcsv($firstLine, $delimiter);
         $header = array_map(function($item) {
-            return strtolower(trim($item));
-        }, str_getcsv($firstLine, $delimiter));
+            return strtolower(trim(preg_replace('/[^a-zA-Z0-9_]/', '', $item)));
+        }, $header);
+
 
         $expectedHeaders = [
             'chinese_character' => true,
