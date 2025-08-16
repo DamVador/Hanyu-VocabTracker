@@ -104,7 +104,9 @@ class StudyController extends Controller
         // --- SRS Logic (Simplified Anki-like algorithm) ---
         if ($isCorrect) {
             $history->consecutive_correct_revisions++;
-            $history->total_incorrect_revisions = 0; // Reset if correct
+
+            // TODO - Add another column to save total incorrect revision since last time it was correct ?
+            // $history->total_incorrect_revisions = 0;
 
             if ($history->consecutive_correct_revisions === 1) {
                 $history->revision_interval = 1; // 1 day
