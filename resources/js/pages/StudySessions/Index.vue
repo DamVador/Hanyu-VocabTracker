@@ -58,6 +58,14 @@ const exportSingleSessionToCsv = (sessionId: number) => {
     window.location.href = route('study-sessions.exportSingleCsv', { study_session: sessionId });
 };
 
+const handleRowClick = (event, sessionId) => {
+    if (event.target.closest('button, a, [role="button"], .dropdown')) {
+        return;
+    }
+
+    window.location.href = route('session-studies.words.index', { study_session: sessionId });
+}
+
 </script>
 
 <template>
@@ -116,65 +124,84 @@ const exportSingleSessionToCsv = (sessionId: number) => {
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-for="session in studySessions.data" :key="session.id">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
-                                            session.name }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-500">{{ session.description || '-' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <Link
-                                                :href="route('session-studies.words.index', { study_session: session.id })"
-                                                class="text-indigo-600 hover:text-indigo-900 font-medium">
-                                            {{ session.words_count }}
-                                            </Link>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ session.completion_percentage }}%
-                                        </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end gap-2">
-                                            <PrimaryButton @click="startSessionReview(session.id, 'auto')"
-                                                :disabled="session.words_count === 0">
-                                                Study Auto (20)
-                                            </PrimaryButton>
-
-                                            <Dropdown align="right" width="48">
-                                                <template #trigger>
-                                                    <button
-                                                        class="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors duration-200">
-                                                        <MoreVertical class="h-5 w-5" />
-                                                    </button>
-                                                </template>
-
-                                                <template #content>
-                                                    <DropdownLink @click="startSessionReview(session.id, 'all')"
-                                                        as="button" :disabled="session.words_count === 0">
-                                                        Study All
-                                                    </DropdownLink>
-                                                    <DropdownLink @click="startSessionReview(session.id, 'new')"
-                                                        as="button" :disabled="session.words_count === 0">
-                                                        Study New
-                                                    </DropdownLink>
-                                                    <DropdownLink @click="startSessionReview(session.id, 'failed')"
-                                                        as="button" :disabled="session.words_count === 0">
-                                                        Study Failed
-                                                    </DropdownLink>
-
-                                                    <div class="border-t border-gray-200 my-1"></div>
-
-                                                    <DropdownLink @click="exportSingleSessionToCsv(session.id)"
-                                                        as="button" :disabled="session.words_count === 0">
-                                                        Export
-                                                    </DropdownLink>
-                                                    <DropdownLink @click="deleteSession(session.id)" as="button"
-                                                        class="text-red-600 hover:text-red-700">
-                                                        Delete Session
-                                                    </DropdownLink>
-                                                </template>
-                                            </Dropdown>
-                                        </td>
-                                    </tr>
-                                </tbody>
+    <tr
+        v-for="session in studySessions.data"
+        :key="session.id"
+        class="hover:bg-gray-50 cursor-pointer"
+        @click="router.get(route('session-studies.words.index', { study_session: session.id }))"
+    >
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            {{ session.name }}
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-500">
+            {{ session.description || "-" }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ session.words_count }}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ session.completion_percentage }}%
+        </td>
+        <td
+            class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex items-center justify-end gap-2"
+            @click.stop
+        >
+            <PrimaryButton
+                @click="startSessionReview(session.id, 'auto')"
+                :disabled="session.words_count === 0"
+            >
+                Study Auto (20)
+            </PrimaryButton>
+            <Dropdown align="right" width="48">
+                <template #trigger>
+                    <button
+                        class="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    >
+                        <MoreVertical class="h-5 w-5" />
+                    </button>
+                </template>
+                <template #content>
+                    <DropdownLink
+                        @click="startSessionReview(session.id, 'all')"
+                        as="button"
+                        :disabled="session.words_count === 0"
+                    >
+                        Study All
+                    </DropdownLink>
+                    <DropdownLink
+                        @click="startSessionReview(session.id, 'new')"
+                        as="button"
+                        :disabled="session.words_count === 0"
+                    >
+                        Study New
+                    </DropdownLink>
+                    <DropdownLink
+                        @click="startSessionReview(session.id, 'failed')"
+                        as="button"
+                        :disabled="session.words_count === 0"
+                    >
+                        Study Failed
+                    </DropdownLink>
+                    <div class="border-t border-gray-200 my-1"></div>
+                    <DropdownLink
+                        @click="exportSingleSessionToCsv(session.id)"
+                        as="button"
+                        :disabled="session.words_count === 0"
+                    >
+                        Export
+                    </DropdownLink>
+                    <DropdownLink
+                        @click="deleteSession(session.id)"
+                        as="button"
+                        class="text-red-600 hover:text-red-700"
+                    >
+                        Delete Session
+                    </DropdownLink>
+                </template>
+            </Dropdown>
+        </td>
+    </tr>
+</tbody>
                             </table>
                         </div>
 
@@ -189,7 +216,7 @@ const exportSingleSessionToCsv = (sessionId: number) => {
                                     </div>
                                     <div class="ml-4 flex-shrink-0 text-right">
                                         <div class="text-sm font-medium text-gray-900">{{ session.completion_percentage
-                                            }}%</div>
+                                        }}%</div>
                                         <div class="w-16 h-2 bg-gray-200 rounded-full mt-1">
                                             <div class="h-full bg-indigo-600 rounded-full transition-all duration-300"
                                                 :style="{ width: session.completion_percentage + '%' }">
