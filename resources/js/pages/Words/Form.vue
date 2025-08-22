@@ -45,24 +45,6 @@ const removeTag = (tag: string) => {
     props.form.tags = props.form.tags.filter((t: string) => t !== tag);
 };
 
-const selectedStudySessionIds = ref(new Set(props.form.study_session_ids || []));
-
-watch(() => props.form.study_session_ids, (newVal) => {
-    selectedStudySessionIds.value = new Set(newVal || []);
-}, { deep: true, immediate: true });
-
-watch(selectedStudySessionIds, (newSet) => {
-    props.form.study_session_ids = Array.from(newSet);
-}, { deep: true });
-
-const toggleStudySession = (sessionId: number) => {
-    if (selectedStudySessionIds.value.has(sessionId)) {
-        selectedStudySessionIds.value.delete(sessionId);
-    } else {
-        selectedStudySessionIds.value.add(sessionId);
-    }
-};
-
 const showPinyinKeyboard = ref(false);
 
 const insertPinyinChar = (char: string) => {
@@ -120,6 +102,23 @@ const adjustNotesTextareaHeight = () => {
         notesTextareaRef.value.style.height = notesTextareaRef.value.scrollHeight + 'px';
     }
 };
+
+const toggleStudySession = (sessionId: number, event: Event) => {
+    const isChecked = (event.target as HTMLInputElement).checked;
+    
+    if (!Array.isArray(props.form.study_session_ids)) {
+        props.form.study_session_ids = [];
+    }
+
+    if (isChecked) {
+        if (!props.form.study_session_ids.includes(sessionId)) {
+            props.form.study_session_ids.push(sessionId);
+        }
+    } else {
+        props.form.study_session_ids = props.form.study_session_ids.filter((id) => id !== sessionId);
+    }
+};
+
 </script>
 
 <template>
@@ -216,7 +215,8 @@ const adjustNotesTextareaHeight = () => {
                 </div>
                 <div v-for="session in props.userStudySessions" :key="session.id" class="flex items-center mb-2">
                     <input type="checkbox" :id="`session-${session.id}`" :value="session.id"
-                        :checked="selectedStudySessionIds.has(session.id)" @change="toggleStudySession(session.id)"
+                        :checked="props.form.study_session_ids.includes(session.id)"
+                        @change="toggleStudySession(session.id, $event)"
                         class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" />
                     <label :for="`session-${session.id}`" class="ml-2 text-sm text-gray-900 cursor-pointer">
                         {{ session.name }}
