@@ -9,6 +9,7 @@ use App\Models\History;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\StatisticsSnapshot;
 
 class StatisticsController extends Controller
 {
@@ -57,14 +58,14 @@ class StatisticsController extends Controller
             $startDate = Carbon::parse($request->input('start_date', Carbon::now()->subMonths(6)->toDateString()));
             $endDate = Carbon::parse($request->input('end_date', Carbon::now()->toDateString()));
 
-            $data = History::where('user_id', $user->id)
-                           ->whereBetween('last_revision', [$startDate->startOfDay(), $endDate->endOfDay()])
-                           ->selectRaw('DATE(last_revision) as date, count(DISTINCT word_id) as count')
-                           ->groupBy('date')
-                           ->orderBy('date', 'asc')
-                           ->get();
+            $data = StatisticsSnapshot::where('user_id', $user->id)
+                                ->whereBetween('snapshot_date', [$startDate->startOfDay(), $endDate->endOfDay()])
+                                ->select('snapshot_date as date', 'words_reviewed as count')
+                                ->orderBy('snapshot_date', 'asc')
+                                ->get();
 
             return response()->json($data);
+
         } catch (\Exception $e) {
             Log::error('Error fetching words reviewed data: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['error' => 'Failed to fetch words reviewed data.'], 500);
@@ -79,27 +80,48 @@ class StatisticsController extends Controller
         try {
             $user = $request->user();
 
-            $newWords = 0;
-            $wordsWithNoHistoryCount = Word::where('user_id', $user->id)
-                ->whereDoesntHave('histories', function ($query) use ($user) {
-                    $query->where('user_id', $user->id);
-                })
-                ->count();
-            
-            $newWords += $wordsWithNoHistoryCount;
+            $words = Word::with(['latestHistory' => function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            }])
+            ->where('user_id', $user->id)
+            ->get();
 
-            $wordsDueForReview = History::where('user_id', $user->id)
-                                        ->where('next_revision', '<=', Carbon::now())
-                                        ->count();
-            $wordsForgotten = History::where('user_id', $user->id)
-                                        ->where('learning_status', 'Forgot')
-                                        ->count();
+            $statusCounts = [
+                'new' => 0,
+                'revise' => 0,
+                'forgot' => 0,
+                'mastered' => 0,
+            ];
+
+            foreach ($words as $word) {
+                $history = $word->latestHistory;
+
+                if (!$history) {
+                    $statusCounts['new']++;
+                } else {
+                    $status = $history->learning_status;
+
+                    if ($status === 'Forgot') {
+                        $statusCounts['forgot']++;
+                    } elseif ($status === 'Mastered') {
+                        $statusCounts['mastered']++;
+                    } elseif ($history->next_revision && $history->next_revision->isFuture()) {
+                        $statusCounts['revise']++;
+                    } elseif ($history->next_revision && ($history->next_revision->isPast() || $history->next_revision->isToday())) {
+                        $statusCounts['revise']++;
+                    } else {
+                        $statusCounts['revise']++;
+                    }
+                }
+            }
 
             return response()->json([
-                'new' => $newWords,
-                'revise' => $wordsDueForReview,
-                'forgot' => $wordsForgotten,
+                'new' => $statusCounts['new'],
+                'revise' => $statusCounts['revise'],
+                'forgot' => $statusCounts['forgot'],
+                'mastered' => $statusCounts['mastered'],
             ]);
+
         } catch (\Exception $e) {
             Log::error('Error fetching learning status distribution: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['error' => 'Failed to fetch learning status data.'], 500);
@@ -114,30 +136,29 @@ class StatisticsController extends Controller
         try {
             $user = $request->user();
 
-            // Default date range: last 6 months
             $startDate = Carbon::parse($request->input('start_date', Carbon::now()->subMonths(6)->toDateString()));
             $endDate = Carbon::parse($request->input('end_date', Carbon::now()->toDateString()));
 
-            // Aggregate correct and incorrect revisions per day
-            $dailyAccuracy = History::where('user_id', $user->id)
-                                    ->whereBetween('last_revision', [$startDate->startOfDay(), $endDate->endOfDay()])
-                                    ->selectRaw('DATE(last_revision) as date, SUM(consecutive_correct_revisions) as total_correct, SUM(total_incorrect_revisions) as total_incorrect')
-                                    ->groupBy('date')
-                                    ->orderBy('date', 'asc')
+            $data = StatisticsSnapshot::where('user_id', $user->id)
+                                    ->whereBetween('snapshot_date', [$startDate->startOfDay(), $endDate->endOfDay()])
+                                    ->select('snapshot_date as date', 'correct_answers', 'incorrect_answers')
+                                    ->orderBy('snapshot_date', 'asc')
                                     ->get();
-
-            $data = $dailyAccuracy->map(function ($day) {
-                $totalAttempts = $day->total_correct + $day->total_incorrect;
-                $accuracyPercentage = $totalAttempts > 0 ? round(($day->total_correct / $totalAttempts) * 100, 2) : 0;
+            
+            $formattedData = $data->map(function ($day) {
+                $totalAttempts = $day->correct_answers + $day->incorrect_answers;
+                $accuracyPercentage = $totalAttempts > 0 ? round(($day->correct_answers / $totalAttempts) * 100, 2) : 0;
+                
                 return [
                     'date' => $day->date,
                     'accuracy_percentage' => $accuracyPercentage,
                 ];
             });
 
-            return response()->json($data);
+            return response()->json($formattedData);
+
         } catch (\Exception $e) {
-            Log::error('Error fetching accuracy rate over time: ' . $e->getMessage(), ['exception' => $e]);
+            Log::error('Error fetching accuracy rate over time from snapshots: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(['error' => 'Failed to fetch accuracy data.'], 500);
         }
     }
