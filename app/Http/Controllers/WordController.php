@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Config; 
+use App\Models\StatisticsSnapshot;
 
 class WordController extends Controller
 {
@@ -328,6 +329,8 @@ class WordController extends Controller
 
         $redirectTo = $validated['_redirect_to'] ?? null;
 
+        $this->updateStatisticsSnapshot($request->user(), 'new_word');
+
         if ($redirectTo) {
             return redirect($redirectTo)->with('success', 'Word created successfully!');
         } else {
@@ -423,6 +426,8 @@ class WordController extends Controller
 
         $word->delete();
 
+        $this->updateStatisticsSnapshot($word->user, 'removed_word', $oldStatus);
+
         return redirect()->route('words.index')->with('success', 'Word deleted successfully!');
     }
 
@@ -446,6 +451,9 @@ class WordController extends Controller
             'word_id' => $word->id,
             'user_id' => $user->id,
         ]);
+
+        // TODO - Maybe not useful
+        $oldLearningStatus = $history->learning_status;
 
         if (!$history->exists) {
             $history->revision_interval = 0; // Days
@@ -491,6 +499,8 @@ class WordController extends Controller
 
         $history->save();
 
+        $this->updateStatisticsSnapshot($user, 'study_event', $oldLearningStatus, $history->learning_status, $isCorrect);
+
         return response()->json([
             'message' => 'Study record updated successfully!',
             'history' => $history->toArray(),
@@ -507,5 +517,41 @@ class WordController extends Controller
         $word->save();
 
         return response()->json(['message' => 'Notes saved successfully!', 'notes' => $word->notes]);
-    } 
+    }
+
+    /**
+     * Helper method to update the word count snapshot.
+     */
+    private function updateStatisticsSnapshot($user, string $action, ?string $oldStatus = null, ?string $newStatus = null, ?bool $isCorrect = null)
+    {
+        $today = Carbon::today();
+
+        $snapshot = StatisticsSnapshot::firstOrNew([
+            'user_id' => $user->id,
+            'snapshot_date' => $today,
+        ]);
+
+        if ($action === 'study_event') {
+            $snapshot->words_reviewed++;
+            if ($isCorrect) {
+                $snapshot->correct_answers++;
+            } else {
+                $snapshot->incorrect_answers++;
+            }
+
+            if ($oldStatus !== $newStatus) {
+                if ($newStatus === 'New') {
+                    $snapshot->new_words++;
+                } elseif ($newStatus === 'Revise') {
+                    $snapshot->revise_words++;
+                } elseif ($newStatus === 'Forgot') {
+                    $snapshot->forgot_words++;
+                } elseif ($newStatus === 'Mastered') {
+                    $snapshot->mastered_words++;
+                }
+            }
+        }
+        
+        $snapshot->save();
+    }
 }
